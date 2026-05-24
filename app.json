@@ -53,13 +53,18 @@
             ],
             "packagingOptions": {
               "pickFirst": [
+                "**/libreact_native_reanimated.so",
+                "**/libworklets.so",
+                "**/libreact_codegen_rngesturehandler.so",
+                "**/libturbomodulejsijni.so",
+                "**/libjsi.so",
+                "**/libhermes.so",
+                "**/libhermes_executor.so",
+                "**/libglog.so",
+                "**/libfolly_json.so",
                 "**/libc++_shared.so",
                 "**/libfbjni.so",
-                "**/libfolly_runtime.so",
-                "**/libglog.so",
-                "**/libjsi.so",
-                "**/libreactnativejni.so",
-                "**/libreact_native_reanimated.so"
+                "**/libfolly_runtime.so"
               ]
             }
           }
