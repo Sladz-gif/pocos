@@ -26,7 +26,8 @@
         "monochromeImage": "./src/assets/android-icon-monochrome.png"
       },
       "package": "com.pocos.app",
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "newArchEnabled": true
     },
     "web": {
       "favicon": "./src/assets/favicon.png",

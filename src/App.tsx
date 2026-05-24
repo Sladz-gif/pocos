@@ -1,3 +1,4 @@
+import './global.css';
 import React from 'react';
 import { RootProvider } from './providers/RootProvider';
 import { RootNavigator } from './navigation/RootNavigator';
