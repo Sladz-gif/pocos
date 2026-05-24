@@ -27,18 +27,18 @@
       },
       "package": "com.pocos.app",
       "predictiveBackGestureEnabled": false,
-      "newArchEnabled": true
+      "newArchEnabled": false
     },
     "web": {
       "favicon": "./src/assets/favicon.png",
       "bundler": "metro"
     },
     "plugins": [
+      "expo-router",
       "expo-image",
       "expo-secure-store",
       "expo-font",
       "@react-native-community/datetimepicker",
-      "expo-router",
       [
         "expo-build-properties",
         {
@@ -46,28 +46,10 @@
             "compileSdkVersion": 35,
             "targetSdkVersion": 35,
             "minSdkVersion": 24,
-            "buildToolsVersion": "35.0.0",
-            "kotlinVersion": "1.9.24",
-            "ndkVersion": "27.1.12297006",
-            "javaVersion": 17,
-            "extraMavenRepos": [
-              "https://www.jitpack.io"
-            ],
-            "packagingOptions": {
-              "pickFirst": [
-                "**/libreact_native_reanimated.so",
-                "**/libworklets.so",
-                "**/libreact_codegen_rngesturehandler.so",
-                "**/libturbomodulejsijni.so",
-                "**/libjsi.so",
-                "**/libhermes.so",
-                "**/libhermes_executor.so",
-                "**/libglog.so",
-                "**/libfolly_json.so",
-                "**/libc++_shared.so",
-                "**/libfbjni.so",
-                "**/libfolly_runtime.so"
-              ]
+            "kotlinVersion": "1.9.0",
+            "extraGradleProperties": {
+              "org.gradle.jvmargs": "-Xmx4g -XX:MaxMetaspaceSize=512m",
+              "org.gradle.logging.level": "info"
             }
           }
         }

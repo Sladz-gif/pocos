@@ -30,7 +30,7 @@ The EAS Android build for **pocos** is consistently failing during the `Run grad
     - **JVM Memory Pressure**: EAS containers have limited memory. We reduced Gradle JVM max heap (`Xmx`) from `8g` to `3g` to prevent OOM kills.
     - **Native Symbol Conflicts**: Added `packagingOptions` to `app.json` to handle duplicate `.so` files (e.g., `libreact_native_reanimated.so`).
     - **Kotlin/Java Compatibility**: Explicitly set Kotlin to `1.9.24` and Java to `17` via `expo-build-properties`.
-- **Current Status**: **Failing.** The error remains "Unknown," suggesting a deep-seated native crash or incompatibility between RN 0.83 and one of the project's native plugins.
+- **Current Status**: **In Progress (Diagnostic Build).** We have enabled verbose logging (`--info --stacktrace`) and pinned the NDK to version `27.1.12297006` to meet the specific requirements of React Native 0.83.
 
 ## Current Blockers
 1. **Experimental Stack**: Expo SDK 55 and React Native 0.83 are extremely new. Many "Expo Config Plugins" for libraries like `react-native-reanimated` or `react-native-screens` may not yet be updated to handle the specific native changes in RN 0.83.

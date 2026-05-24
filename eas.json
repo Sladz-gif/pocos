@@ -11,9 +11,6 @@
     },
     "preview": {
       "node": "22.11.0",
-      "env": {
-        "GRADLE_OPTS": "--info --stacktrace"
-      },
       "android": {
         "buildType": "apk"
       },
