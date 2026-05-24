@@ -27,7 +27,7 @@
       },
       "package": "com.pocos.app",
       "predictiveBackGestureEnabled": false,
-      "newArchEnabled": false
+      "newArchEnabled": true
     },
     "web": {
       "favicon": "./src/assets/favicon.png",
@@ -58,7 +58,8 @@
                 "**/libfolly_runtime.so",
                 "**/libglog.so",
                 "**/libjsi.so",
-                "**/libreactnativejni.so"
+                "**/libreactnativejni.so",
+                "**/libreact_native_reanimated.so"
               ]
             }
           }
