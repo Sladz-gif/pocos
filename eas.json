@@ -11,7 +11,6 @@
     },
     "preview": {
       "node": "22.11.0",
-      "image": "ubuntu-22.04-jdk-17-ndk-r26b",
       "android": {
         "buildType": "apk"
       },
@@ -22,7 +21,6 @@
     },
     "production": {
       "node": "22.11.0",
-      "image": "ubuntu-22.04-jdk-17-ndk-r26b",
       "autoIncrement": true,
       "env": {
         "EXPO_PUBLIC_SUPABASE_URL": "https://incnvieiiakiqjtgsvkp.supabase.co",
