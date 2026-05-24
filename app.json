@@ -42,6 +42,13 @@
     "experiments": {
       "typedRoutes": true
     },
-    "scheme": "pocos"
+    "scheme": "pocos",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "2f4d42ac-8253-4334-9cbf-75f16c8cb5e9"
+      }
+    },
+    "owner": "xenon9898"
   }
 }
