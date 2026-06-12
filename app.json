@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "POCOS",
-    "slug": "pocos",
+    "slug": "pocos-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./src/assets/icon.png",
@@ -34,8 +34,6 @@
       "bundler": "metro"
     },
     "plugins": [
-      "expo-router",
-      "expo-image",
       "expo-secure-store",
       "expo-font",
       "@react-native-community/datetimepicker",
@@ -58,13 +56,12 @@
     "experiments": {
       "typedRoutes": true
     },
-    "scheme": "pocos",
+    "scheme": "pocos-app",
     "extra": {
-      "router": {},
       "eas": {
-        "projectId": "2f4d42ac-8253-4334-9cbf-75f16c8cb5e9"
+        "projectId": "81f955f7-6268-453c-b897-b440c1b7436b"
       }
     },
-    "owner": "xenon9898"
+    "owner": "bbbcvd"
   }
 }

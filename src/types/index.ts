@@ -5,3 +5,4 @@ export * from './marketplace';
 export * from './chat';
 export * from './analytics';
 export * from './common';
+export * from './poultry';
