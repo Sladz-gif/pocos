@@ -1,5 +1,33 @@
 import { BaseEntity, Gender, HealthStatus } from './common';
 
+export type AnimalType = 'cattle' | 'sheep' | 'goat' | 'horse' | 'donkey' | 'bird';
+
+export interface CustomField {
+  id: string;
+  label: string;
+  fieldType: 'text' | 'number' | 'date' | 'select';
+  options?: string[];
+  required: boolean;
+}
+
+export interface Profile extends BaseEntity {
+  id: string;
+  name: string;
+  animalType: AnimalType;
+  ranchId: string;
+  customFields?: CustomField[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BirdCountRecord {
+  id: string;
+  profileId: string;
+  cageId: string;
+  count: number;
+  timestamp: string;
+}
+
 export interface Animal extends BaseEntity {
   animalId?: string;
   tagNumber?: string;

@@ -1,22 +1,11 @@
 import { create } from 'zustand';
 import { supabase } from '../config/supabase';
 import { v4 as uuidv4 } from 'uuid';
-// import { Profile, BirdCountRecord } from '../types'; // Temporarily commented out for build testing
-
-// Temporarily using local types for build testing
-interface Profile {
-  id: string;
-  name: string;
-  animalType: string;
-  ranchId: string;
-  customFields?: any[];
-  createdAt: string;
-  updatedAt: string;
-}
+import { Profile, BirdCountRecord } from '../types';
 
 interface ProfileStore {
   profiles: Profile[];
-  // birdCountRecords: BirdCountRecord[]; // Temporarily commented out for build testing
+  birdCountRecords: BirdCountRecord[];
   isLoading: boolean;
 
   // Actions
@@ -25,15 +14,15 @@ interface ProfileStore {
   updateProfile: (id: string, updates: Partial<Profile>) => Promise<void>;
   deleteProfile: (id: string) => Promise<void>;
 
-  // Bird count tracking - Temporarily commented out for build testing
-  // recordBirdCount: (record: Omit<BirdCountRecord, 'id'>) => Promise<void>;
-  // fetchBirdCountHistory: (profileId: string, startDate?: string, endDate?: string) => Promise<void>;
-  // getLatestBirdCounts: (profileId: string) => BirdCountRecord[];
+  // Bird count tracking
+  recordBirdCount: (record: Omit<BirdCountRecord, 'id'>) => Promise<void>;
+  fetchBirdCountHistory: (profileId: string, startDate?: string, endDate?: string) => Promise<void>;
+  getLatestBirdCounts: (profileId: string) => BirdCountRecord[];
 }
 
 export const useProfileStore = create<ProfileStore>((set, get) => ({
   profiles: [],
-  // birdCountRecords: [], // Temporarily commented out for build testing
+  birdCountRecords: [],
   isLoading: false,
   
   fetchProfiles: async (ranchId: string) => {
@@ -152,8 +141,6 @@ export const useProfileStore = create<ProfileStore>((set, get) => ({
     }
   },
 
-  // Bird count tracking - Temporarily commented out for build testing
-  /*
   recordBirdCount: async (record) => {
     try {
       const birdCount = {
@@ -230,5 +217,4 @@ export const useProfileStore = create<ProfileStore>((set, get) => ({
 
     return Array.from(latestByCage.values());
   },
-  */
 }));
