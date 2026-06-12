@@ -8,6 +8,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { HerdStackParamList } from '../../navigation/types';
 import { useLivestockStore } from '../../store/livestockStore';
 import { useAuthStore } from '../../store/authStore';
+import { Animal } from '../../types/livestock';
 
 type HerdScreenProps = {
   navigation: StackNavigationProp<HerdStackParamList, 'Herd'>;
@@ -28,17 +29,18 @@ export const HerdScreen: React.FC<HerdScreenProps> = ({ navigation }) => {
   }, [ranch?.id, fetchAnimals]);
 
   const filteredAnimals = animals.filter(animal => {
-    const matchesSearch = animal.animalId?.toLowerCase().includes(searchQuery.toLowerCase());
-    
+    const matchesSearch = animal.animalId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         animal.tagNumber?.toLowerCase().includes(searchQuery.toLowerCase());
+
     if (selectedCategory === 'All') return matchesSearch;
     if (selectedCategory === 'Cattle') return matchesSearch;
     if (selectedCategory === 'Bulls') return matchesSearch && animal.sex?.toLowerCase() === 'male';
     if (selectedCategory === 'Heifers') return matchesSearch && animal.sex?.toLowerCase() === 'female';
-    if (selectedCategory === 'Calves') return matchesSearch && (animal.animalId === 'AS-011' || animal.animalId === 'AS-012');
+    if (selectedCategory === 'Calves') return matchesSearch && animal.age !== undefined && animal.age < 1;
     return matchesSearch;
   });
 
-  const renderAnimal = ({ item }: { item: typeof animals[0] }) => {
+  const renderAnimal = ({ item }: { item: Animal }) => {
     const isWearOffActive = item.isMedicated && item.medicationDate && (
       (new Date().getTime() - new Date(item.medicationDate).getTime()) < (28 * 24 * 60 * 60 * 1000)
     );
@@ -53,7 +55,7 @@ export const HerdScreen: React.FC<HerdScreenProps> = ({ navigation }) => {
         <PCard style={styles.animalCard}>
           <View style={styles.animalInfo}>
             <View style={styles.animalMain}>
-              <Text style={styles.animalId}>{item.animalId}</Text>
+              <Text style={styles.animalId}>{item.animalId || item.tagNumber || 'No ID'}</Text>
               {isWearOffActive && (
                 <View style={styles.wearOffBadge}>
                   <Ionicons name="time-outline" size={12} color="#FFFFFF" />
@@ -64,7 +66,7 @@ export const HerdScreen: React.FC<HerdScreenProps> = ({ navigation }) => {
             <View style={styles.animalMeta}>
               <Text style={styles.breedText}>{item.breed}</Text>
               <Text style={styles.dot}>•</Text>
-              <Text style={styles.genderText}>{item.sex}</Text>
+              <Text style={styles.genderText}>{item.sex || 'Unknown'}</Text>
             </View>
           </View>
           <PBadge 

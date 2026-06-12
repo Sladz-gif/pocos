@@ -44,6 +44,8 @@ export interface Animal extends BaseEntity {
   originRanch?: string;
   currentRanch?: string;
   ranchId?: string;
+  profileId?: string;
+  animalType?: AnimalType;
   photos?: string[];
   tags?: string[];
   notes?: string;

@@ -7,7 +7,7 @@ import { Colors, Spacing, Typography, Radius } from '../../constants';
 import { useAuthStore } from '../../store/authStore';
 import { useLivestockStore } from '../../store/livestockStore';
 import { useTaskStore } from '../../store/taskStore';
-import { useActivityLogStore } from '../../store/activityLogStore';
+import { useActivityLogStore, ActivityLog } from '../../store/activityLogStore';
 import { Ionicons } from '@expo/vector-icons';
 import { PCard } from '../../components/ui';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -57,31 +57,31 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     { 
       label: 'On Medication', 
       value: medicationRecords.length.toString(), 
-      icon: 'medkit', 
+      icon: 'medkit' as keyof typeof Ionicons.glyphMap, 
       alert: medicationRecords.length > 0,
-      onPress: () => navigation.navigate('HerdStack', { screen: 'Herd' } as any)
+      onPress: () => navigation.navigate('HerdStack', { screen: 'Herd' })
     },
     { 
       label: 'Pregnant', 
       value: animals.filter(a => a.healthStatus === 'pregnant').length.toString(), 
-      icon: 'heart',
-      onPress: () => navigation.navigate('HerdStack', { screen: 'Herd' } as any)
+      icon: 'heart' as keyof typeof Ionicons.glyphMap,
+      onPress: () => navigation.navigate('HerdStack', { screen: 'Herd' })
     },
     { 
       label: 'Tasks Due Today', 
       value: tasks.filter(t => t.status !== 'completed' && t.dueDate === format(new Date(), 'yyyy-MM-dd')).length.toString(), 
-      icon: 'calendar',
-      onPress: () => navigation.navigate('TasksStack', { screen: 'TaskBoard' } as any)
+      icon: 'calendar' as keyof typeof Ionicons.glyphMap,
+      onPress: () => navigation.navigate('TasksStack', { screen: 'TaskBoard' })
     },
     { 
       label: 'Staff On Duty', 
       value: onboardedStaff.length.toString(), 
-      icon: 'people',
+      icon: 'people' as keyof typeof Ionicons.glyphMap,
       onPress: () => navigation.navigate('StaffActivityMonitor')
     },
   ];
 
-  const renderActivityItem = ({ item }: { item: any }) => (
+  const renderActivityItem = ({ item }: { item: ActivityLog }) => (
     <TouchableOpacity 
       style={styles.activityItem}
       onPress={() => {
@@ -226,12 +226,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                   <View style={styles.avatarContainer}>
                     <View style={styles.avatarPlaceholder}>
                       <Text style={{ fontFamily: 'DMSans-Bold', fontSize: 18, color: Colors.mutedSienna }}>
-                        {staffMember.name[0]}
+                        {staffMember.name?.[0] || '?'}
                       </Text>
                     </View>
                     <View style={styles.onlineDot} />
                   </View>
-                  <Text style={styles.staffName}>{staffMember.name.split(' ')[0]}</Text>
+                  <Text style={styles.staffName}>{staffMember.name?.split(' ')[0] || 'Unknown'}</Text>
                   <Text style={{ fontFamily: 'DMSans-Regular', fontSize: 9, color: Colors.mutedSienna }}>
                     {staffMember.role === 'super_admin' ? 'Admin' : staffMember.role === 'store_manager' ? 'Manager' : 'Staff'}
                   </Text>

@@ -20,11 +20,11 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({ naviga
   const { animals } = useLivestockStore();
   const profile = profiles.find(p => p.id === route.params.id);
 
-  const [profileAnimals, setProfileAnimals] = useState(animals.filter(a => (a as any).animalType === profile?.animalType));
+  const [profileAnimals, setProfileAnimals] = useState(animals.filter(a => a.animalType === profile?.animalType));
 
   useEffect(() => {
     if (profile) {
-      setProfileAnimals(animals.filter(a => (a as any).animalType === profile.animalType));
+      setProfileAnimals(animals.filter(a => a.animalType === profile.animalType));
     }
   }, [profile, animals]);
 
@@ -36,14 +36,14 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({ naviga
     navigation.navigate('AnimalDetail', { id: animalId });
   };
 
-  const getAnimalTypeIcon = (type: string) => {
-    const icons: Record<string, string> = {
-      cattle: 'cow',
+  const getAnimalTypeIcon = (type: string): keyof typeof Ionicons.glyphMap => {
+    const icons: Record<string, keyof typeof Ionicons.glyphMap> = {
+      cattle: 'paw',
       sheep: 'cloud',
-      goat: 'triangle',
+      goat: 'leaf',
       horse: 'paw',
-      donkey: 'body',
-      bird: 'egg',
+      donkey: 'paw',
+      bird: 'leaf',
     };
     return icons[type] || 'paw';
   };
@@ -86,7 +86,7 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({ naviga
         <PCard style={styles.profileInfo}>
           <View style={styles.infoRow}>
             <View style={[styles.iconContainer, { backgroundColor: getAnimalTypeColor(profile.animalType) + '20' }]}>
-              <Ionicons name={getAnimalTypeIcon(profile.animalType) as any} size={32} color={getAnimalTypeColor(profile.animalType)} />
+              <Ionicons name={getAnimalTypeIcon(profile.animalType)} size={32} color={getAnimalTypeColor(profile.animalType)} />
             </View>
             <View style={styles.infoText}>
               <Text style={styles.infoLabel}>Type</Text>
@@ -121,9 +121,9 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({ naviga
         </PCard>
 
         {profile.animalType === 'bird' && (
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.birdCountButton}
-            onPress={() => navigation.navigate('BirdCount')}
+            onPress={() => navigation.navigate('BirdCount', { profileId: profile.id })}
           >
             <Ionicons name="bar-chart" size={24} color="#FFFFFF" />
             <View style={styles.birdCountButtonContent}>
@@ -159,7 +159,7 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({ naviga
                 onPress={() => handleAnimalPress(animal.id)}
               >
                 <View style={styles.animalHeader}>
-                  <Text style={styles.animalId}>{animal.animalId}</Text>
+                  <Text style={styles.animalId}>{animal.animalId || animal.tagNumber || 'No ID'}</Text>
                   <Ionicons name="chevron-forward" size={20} color={Colors.mutedSienna} />
                 </View>
                 <View style={styles.animalDetails}>

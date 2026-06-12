@@ -28,6 +28,13 @@ export type HerdStackParamList = {
   AnimalDetail: { id: string };
   AddAnimal: undefined;
   AncestryTree: { id: string };
+  ProfileDetail: { id: string };
+  BirdCount: { profileId: string };
+  BirdCountHistory: { profileId: string };
+  AddBirdProfile: { profileId: string };
+  BirdProfileDetail: { profileId: string };
+  CreateProfile: undefined;
+  SelectAnimalType: undefined;
 };
 
 export type TasksStackParamList = {
