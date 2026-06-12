@@ -1,3 +1,5 @@
+# pocos
+
 # POCOS - Ranch Operations & Livestock Intelligence Platform
 
 A premium, offline-first mobile application for modern ranch operations, livestock management, and marketplace ecosystem.
