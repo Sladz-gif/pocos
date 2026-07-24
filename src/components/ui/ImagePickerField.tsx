@@ -43,7 +43,7 @@ export function ImagePickerField({
     onChange(null);
   };
 
-  const pickerStyle = {
+  const pickerStyle: any = {
     width: fullWidth ? '100%' : size,
     aspectRatio: aspect[0] / aspect[1],
   };

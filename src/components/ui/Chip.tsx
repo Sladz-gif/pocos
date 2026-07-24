@@ -7,6 +7,8 @@ interface ChipProps {
   selected?: boolean;
   onPress?: () => void;
   variant?: 'default' | 'filter' | 'status';
+  style?: any;
+  textStyle?: any;
 }
 
 export function PChip({
@@ -14,10 +16,12 @@ export function PChip({
   selected = false,
   onPress,
   variant = 'default',
+  style,
+  textStyle,
 }: ChipProps) {
   const getBackgroundColor = () => {
     if (variant === 'status') {
-      return selected ? Colors.success : Colors.secondarySurface;
+      return selected ? Colors.successMoss : Colors.secondarySurface;
     }
     return selected ? Colors.primaryAccent : Colors.secondarySurface;
   };
@@ -34,6 +38,7 @@ export function PChip({
       style={[
         styles.chip,
         { backgroundColor: getBackgroundColor() },
+        style,
       ]}
       onPress={onPress}
       disabled={!onPress}
@@ -43,6 +48,7 @@ export function PChip({
         style={[
           styles.label,
           { color: getTextColor() },
+          textStyle,
         ]}
       >
         {label}

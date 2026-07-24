@@ -24,6 +24,7 @@ export interface Message extends BaseEntity {
   isRead: boolean;
   readBy: string[];
   sentAt?: string;
+  status?: 'sending' | 'sent' | 'failed';
 }
 
 export interface Attachment {

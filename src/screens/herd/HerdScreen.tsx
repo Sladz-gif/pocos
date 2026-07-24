@@ -7,6 +7,7 @@ import { PCard, PBadge, PChip, PInput, PButton } from '../../components/ui';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { HerdStackParamList } from '../../navigation/types';
 import { useLivestockStore } from '../../store/livestockStore';
+import { useProfileStore } from '../../store/profileStore';
 import { useAuthStore } from '../../store/authStore';
 import { Animal } from '../../types/livestock';
 
@@ -14,10 +15,11 @@ type HerdScreenProps = {
   navigation: StackNavigationProp<HerdStackParamList, 'Herd'>;
 };
 
-const CATEGORIES = ['All', 'Cattle', 'Calves', 'Bulls', 'Heifers'];
+const CATEGORIES = ['All', 'Cattle', 'Calves', 'Bulls', 'Heifers', 'Birds'];
 
 export const HerdScreen: React.FC<HerdScreenProps> = ({ navigation }) => {
   const { animals, fetchAnimals, setSelectedAnimal } = useLivestockStore();
+  const { profiles, fetchProfiles } = useProfileStore();
   const { ranch } = useAuthStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -25,8 +27,9 @@ export const HerdScreen: React.FC<HerdScreenProps> = ({ navigation }) => {
   useEffect(() => {
     if (ranch?.id) {
       fetchAnimals(ranch.id);
+      fetchProfiles(ranch.id);
     }
-  }, [ranch?.id, fetchAnimals]);
+  }, [ranch?.id, fetchAnimals, fetchProfiles]);
 
   const filteredAnimals = animals.filter(animal => {
     const matchesSearch = animal.animalId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -39,6 +42,34 @@ export const HerdScreen: React.FC<HerdScreenProps> = ({ navigation }) => {
     if (selectedCategory === 'Calves') return matchesSearch && animal.age !== undefined && animal.age < 1;
     return matchesSearch;
   });
+
+  const filteredProfiles = profiles.filter(profile => {
+    const matchesSearch = profile.name?.toLowerCase().includes(searchQuery.toLowerCase());
+    if (selectedCategory === 'All') return matchesSearch && profile.animalType === 'bird';
+    if (selectedCategory === 'Birds') return matchesSearch && profile.animalType === 'bird';
+    return false;
+  });
+
+  const renderProfile = ({ item }: { item: any }) => (
+    <TouchableOpacity 
+      onPress={() => {
+        navigation.navigate('BirdProfileDetail', { id: item.id });
+      }}
+    >
+      <PCard style={styles.animalCard}>
+        <View style={styles.animalInfo}>
+          <View style={styles.avatarPlaceholder}>
+            <Ionicons name="egg-outline" size={30} color={Colors.primaryRust} />
+          </View>
+          <View style={styles.details}>
+            <Text style={styles.animalName}>{item.name}</Text>
+            <Text style={styles.breedText}>{item.animalType} • Profile</Text>
+          </View>
+        </View>
+        <PBadge text="POULTRY" variant="info" />
+      </PCard>
+    </TouchableOpacity>
+  );
 
   const renderAnimal = ({ item }: { item: Animal }) => {
     const isWearOffActive = item.isMedicated && item.medicationDate && (
@@ -87,7 +118,7 @@ export const HerdScreen: React.FC<HerdScreenProps> = ({ navigation }) => {
         </View>
         <TouchableOpacity 
           style={styles.addButton}
-          onPress={() => navigation.navigate('AddAnimal')}
+          onPress={() => navigation.navigate('SelectAnimalType')}
         >
           <Ionicons name="add" size={24} color="#FFFFFF" />
         </TouchableOpacity>
@@ -124,8 +155,8 @@ export const HerdScreen: React.FC<HerdScreenProps> = ({ navigation }) => {
       </View>
 
       <FlatList
-        data={filteredAnimals}
-        renderItem={renderAnimal}
+        data={selectedCategory === 'Birds' ? filteredProfiles : [...filteredAnimals, ...(selectedCategory === 'All' ? filteredProfiles : [])]}
+        renderItem={({ item }) => 'sex' in item ? renderAnimal({ item }) : renderProfile({ item })}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={

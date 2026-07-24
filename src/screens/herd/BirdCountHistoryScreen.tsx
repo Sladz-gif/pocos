@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
+import React, { useMemo, useState, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Modal, Image, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, Typography, Radius } from '../../constants';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,15 +8,44 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { HerdStackParamList } from '../../navigation/types';
 import { usePoultryStore } from '../../store/poultryStore';
 import { usePoultry } from '../../hooks/usePoultry';
-import { format, isSameDay } from 'date-fns';
+import { useProfileStore } from '../../store/profileStore';
+import { useJetsonStore } from '../../store/jetsonStore';
+import { format, isSameDay, isYesterday } from 'date-fns';
+import { BirdDetection } from '../../types';
+
+const { width: screenWidth } = Dimensions.get('window');
 
 type BirdCountHistoryScreenProps = {
   navigation: StackNavigationProp<HerdStackParamList, 'BirdCountHistory'>;
+  route?: { params?: { profileId?: string } };
 };
 
-export const BirdCountHistoryScreen: React.FC<BirdCountHistoryScreenProps> = ({ navigation }) => {
+type TabType = 'history' | 'timeline';
+
+export const BirdCountHistoryScreen: React.FC<BirdCountHistoryScreenProps> = ({ navigation, route }) => {
   const { history, isLoading, error } = usePoultryStore();
   const { refresh } = usePoultry();
+  const { profiles } = useProfileStore();
+  const { birdDetections, fetchBirdDetections } = useJetsonStore();
+  
+  const [activeTab, setActiveTab] = useState<TabType>('history');
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(0);
+
+  // Get the profile (coop) from route params if available
+  const profile = route?.params?.profileId 
+    ? profiles.find(p => p.id === route.params.profileId)
+    : null;
+  
+  const assetId = profile?.deviceAddress;
+
+  // Fetch bird detections when timeline tab is active and we have an assetId
+  useEffect(() => {
+    if (activeTab === 'timeline' && assetId) {
+      fetchBirdDetections(assetId, 0);
+      setCurrentPage(0);
+    }
+  }, [activeTab, assetId, fetchBirdDetections]);
 
   const groupedHistory = useMemo(() => {
     const groups: { [key: string]: typeof history } = {};
@@ -31,11 +60,43 @@ export const BirdCountHistoryScreen: React.FC<BirdCountHistoryScreenProps> = ({ 
     })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [history]);
 
-  const renderItem = ({ item }: { item: { date: string, data: typeof history } }) => (
+  // Group bird detections by date
+  const groupedDetections = useMemo(() => {
+    if (!assetId) return [];
+    const detections = birdDetections.get(assetId) || [];
+    
+    const groups: { [key: string]: BirdDetection[] } = {};
+    detections.forEach(item => {
+      const dateKey = new Date(item.detected_at).toDateString();
+      if (!groups[dateKey]) groups[dateKey] = [];
+      groups[dateKey].push(item);
+    });
+    
+    return Object.keys(groups).map(date => ({
+      date,
+      data: groups[date]
+    })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [birdDetections, assetId]);
+
+  const formatDateLabel = (date: Date) => {
+    if (isSameDay(date, new Date())) return 'Today';
+    if (isYesterday(date)) return 'Yesterday';
+    return format(date, 'MMM d, yyyy');
+  };
+
+  const handleLoadMore = () => {
+    if (assetId) {
+      const nextPage = currentPage + 1;
+      fetchBirdDetections(assetId, nextPage);
+      setCurrentPage(nextPage);
+    }
+  };
+
+  const renderHistoryItem = ({ item }: { item: { date: string, data: typeof history } }) => (
     <View style={styles.groupContainer}>
       <View style={styles.dateHeader}>
         <Text style={styles.dateHeaderText}>
-          {isSameDay(new Date(item.date), new Date()) ? 'Today' : format(new Date(item.date), 'MMMM d, yyyy')}
+          {formatDateLabel(new Date(item.date))}
         </Text>
       </View>
       {item.data.map((record) => (
@@ -63,14 +124,84 @@ export const BirdCountHistoryScreen: React.FC<BirdCountHistoryScreenProps> = ({ 
     </View>
   );
 
+  const renderTimelineItem = ({ item }: { item: { date: string, data: BirdDetection[] } }) => (
+    <View style={styles.groupContainer}>
+      <View style={styles.dateHeader}>
+        <Text style={styles.dateHeaderText}>
+          {formatDateLabel(new Date(item.date))}
+        </Text>
+      </View>
+      <View style={styles.detectionGrid}>
+        {item.data.map((detection) => (
+          <TouchableOpacity
+            key={detection.id}
+            style={styles.detectionThumbContainer}
+            onPress={() => detection.image_url && setSelectedImage(detection.image_url)}
+          >
+            {detection.image_url ? (
+              <Image
+                source={{ uri: detection.image_url }}
+                style={styles.detectionThumb}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={styles.detectionThumbPlaceholder}>
+                <Ionicons name="image-outline" size={32} color={Colors.softAsh} />
+              </View>
+            )}
+            <Text style={styles.detectionTime}>
+              {format(new Date(detection.detected_at), 'h:mm a')}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+
+  const renderTimelineEmptyState = () => {
+    if (!assetId) {
+      return (
+        <View style={styles.emptyState}>
+          <Ionicons name="link-outline" size={48} color={Colors.softAsh} />
+          <Text style={styles.emptyText}>No device linked yet</Text>
+          <Text style={styles.emptySubtext}>Link a device to this coop to view photos</Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.emptyState}>
+        <Ionicons name="images-outline" size={48} color={Colors.softAsh} />
+        <Text style={styles.emptyText}>No photos yet</Text>
+        <Text style={styles.emptySubtext}>Once the camera detects birds, photos will show up here</Text>
+      </View>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={Colors.charcoalInk} />
         </TouchableOpacity>
-        <Text style={styles.title}>Full Count History</Text>
+        <Text style={styles.title}>Count History</Text>
         <View style={{ width: 24 }} />
+      </View>
+
+      {/* Tabs */}
+      <View style={styles.tabsContainer}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'history' && styles.activeTab]}
+          onPress={() => setActiveTab('history')}
+        >
+          <Text style={[styles.tabText, activeTab === 'history' && styles.activeTabText]}>History</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'timeline' && styles.activeTab]}
+          onPress={() => setActiveTab('timeline')}
+        >
+          <Text style={[styles.tabText, activeTab === 'timeline' && styles.activeTabText]}>Timeline</Text>
+        </TouchableOpacity>
       </View>
 
       {error && (
@@ -79,21 +210,61 @@ export const BirdCountHistoryScreen: React.FC<BirdCountHistoryScreenProps> = ({ 
         </View>
       )}
 
-      <FlatList
-        data={groupedHistory}
-        renderItem={renderItem}
-        keyExtractor={item => item.date}
-        contentContainerStyle={styles.listContent}
-        refreshControl={
-          <RefreshControl refreshing={isLoading} onRefresh={refresh} colors={[Colors.primaryRust]} />
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Ionicons name="calendar-outline" size={48} color={Colors.softAsh} />
-            <Text style={styles.emptyText}>No historical logs found</Text>
-          </View>
-        }
-      />
+      {activeTab === 'history' ? (
+        <FlatList
+          data={groupedHistory}
+          renderItem={renderHistoryItem}
+          keyExtractor={item => item.date}
+          contentContainerStyle={styles.listContent}
+          refreshControl={
+            <RefreshControl refreshing={isLoading} onRefresh={refresh} colors={[Colors.primaryRust]} />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Ionicons name="calendar-outline" size={48} color={Colors.softAsh} />
+              <Text style={styles.emptyText}>No historical logs found</Text>
+            </View>
+          }
+        />
+      ) : (
+        <FlatList
+          data={groupedDetections}
+          renderItem={renderTimelineItem}
+          keyExtractor={item => item.date}
+          contentContainerStyle={styles.listContent}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          ListEmptyComponent={renderTimelineEmptyState()}
+        />
+      )}
+
+      {/* Full-screen image modal */}
+      <Modal
+        visible={!!selectedImage}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setSelectedImage(null)}
+      >
+        <TouchableOpacity
+          style={styles.imageModalContainer}
+          activeOpacity={1}
+          onPress={() => setSelectedImage(null)}
+        >
+          {selectedImage && (
+            <Image
+              source={{ uri: selectedImage }}
+              style={styles.fullScreenImage}
+              resizeMode="contain"
+            />
+          )}
+          <TouchableOpacity
+            style={styles.closeImageButton}
+            onPress={() => setSelectedImage(null)}
+          >
+            <Ionicons name="close-circle" size={40} color="#FFFFFF" />
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -212,5 +383,81 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.base,
     color: Colors.mutedSienna,
     marginTop: Spacing.md,
+  },
+  emptySubtext: {
+    fontFamily: 'DMSans-Regular',
+    fontSize: Typography.fontSize.sm,
+    color: Colors.mutedSienna,
+    marginTop: Spacing.xs,
+    textAlign: 'center',
+  },
+  tabsContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.softAsh,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: Spacing.sm,
+    alignItems: 'center',
+  },
+  activeTab: {
+    borderBottomWidth: 2,
+    borderBottomColor: Colors.primaryRust,
+  },
+  tabText: {
+    fontFamily: 'DMSans-Medium',
+    fontSize: Typography.fontSize.base,
+    color: Colors.mutedSienna,
+  },
+  activeTabText: {
+    color: Colors.primaryRust,
+  },
+  detectionGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
+  },
+  detectionThumbContainer: {
+    width: (screenWidth - Spacing.xl * 2 - Spacing.md) / 3,
+    alignItems: 'center',
+  },
+  detectionThumb: {
+    width: '100%',
+    aspectRatio: 1,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.softAsh,
+  },
+  detectionThumbPlaceholder: {
+    width: '100%',
+    aspectRatio: 1,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.softAsh,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  detectionTime: {
+    fontFamily: 'DMSans-Regular',
+    fontSize: Typography.fontSize.sm,
+    color: Colors.mutedSienna,
+    marginTop: Spacing.xs,
+  },
+  imageModalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullScreenImage: {
+    width: '100%',
+    height: '80%',
+  },
+  closeImageButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
   },
 });

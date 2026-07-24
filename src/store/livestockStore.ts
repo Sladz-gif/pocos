@@ -222,6 +222,7 @@ export const useLivestockStore = create<LivestockStore>((set) => ({
     if (!error) {
       const newRecord: PregnancyRecord = {
         id: newRecordId,
+        animalId: record.animalId,
         startDate: record.startDate,
         expectedBirthDate: record.expectedBirthDate,
         sireId: record.sireId,

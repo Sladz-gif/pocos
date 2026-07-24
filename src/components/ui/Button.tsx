@@ -12,7 +12,7 @@ import { Colors, Spacing, Typography, Radius } from '../../constants';
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline' | 'success';
   size?: 'small' | 'medium' | 'large';
   disabled?: boolean;
   loading?: boolean;
@@ -39,7 +39,10 @@ export function PButton({
         return Colors.deepPlum;
       case 'danger':
         return Colors.dangerCrimson;
+      case 'success':
+        return Colors.successMoss;
       case 'ghost':
+      case 'outline':
         return 'transparent';
       default:
         return Colors.primaryRust;
@@ -52,8 +55,10 @@ export function PButton({
       case 'primary':
       case 'secondary':
       case 'danger':
+      case 'success':
         return '#FFFFFF';
       case 'ghost':
+      case 'outline':
         return Colors.primaryRust;
       default:
         return '#FFFFFF';

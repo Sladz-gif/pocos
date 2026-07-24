@@ -21,7 +21,7 @@ interface InputProps {
   onChangeText?: (text: string) => void;
   multiline?: boolean;
   numberOfLines?: number;
-  keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad';
+  keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad' | 'url';
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   secureTextEntry?: boolean;
   autoFocus?: boolean;

@@ -155,6 +155,53 @@ export const AdminPanelHomeScreen: React.FC<AdminPanelHomeScreenProps> = ({ navi
             </View>
             <Ionicons name="chevron-forward" size={20} color={Colors.mutedSienna} />
           </PCard>
+
+          <PCard style={styles.menuItem} onPress={() => navigation.navigate('DeviceHealthCheck')}>
+            <View style={styles.menuIcon}>
+              <Ionicons name="hardware-chip-outline" size={24} color={Colors.primaryRust} />
+            </View>
+            <View style={styles.menuText}>
+              <Text style={styles.menuTitle}>Device Health</Text>
+              <Text style={styles.menuSubtitle}>Monitor Jetson Nano devices and camera units</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={Colors.mutedSienna} />
+          </PCard>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Preferences</Text>
+          <PCard style={styles.menuItem} onPress={() => navigation.navigate('ProfileHome')}>
+            <View style={styles.menuIcon}>
+              <Ionicons name="person-outline" size={24} color={Colors.primaryRust} />
+            </View>
+            <View style={styles.menuText}>
+              <Text style={styles.menuTitle}>My Profile</Text>
+              <Text style={styles.menuSubtitle}>Update your personal information</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={Colors.mutedSienna} />
+          </PCard>
+
+          <PCard style={styles.menuItem} onPress={() => navigation.navigate('NotificationSettings')}>
+            <View style={styles.menuIcon}>
+              <Ionicons name="notifications-outline" size={24} color={Colors.primaryRust} />
+            </View>
+            <View style={styles.menuText}>
+              <Text style={styles.menuTitle}>Notifications</Text>
+              <Text style={styles.menuSubtitle}>Manage alert preferences</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={Colors.mutedSienna} />
+          </PCard>
+
+          <PCard style={styles.menuItem} onPress={() => navigation.navigate('HelpSupport')}>
+            <View style={styles.menuIcon}>
+              <Ionicons name="help-circle-outline" size={24} color={Colors.primaryRust} />
+            </View>
+            <View style={styles.menuText}>
+              <Text style={styles.menuTitle}>Help & Support</Text>
+              <Text style={styles.menuSubtitle}>FAQs and contact support</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={Colors.mutedSienna} />
+          </PCard>
         </View>
 
         <PButton 

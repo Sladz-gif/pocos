@@ -15,7 +15,7 @@ type ChatHomeScreenProps = {
 
 export const ChatHomeScreen: React.FC<ChatHomeScreenProps> = ({ navigation }) => {
   const { ranch, user } = useAuthStore();
-  const { channels, createChannel, contacts, getOrCreateDirectChannel, setActiveChannel } = useChatStore();
+  const { channels, createChannel, contacts, fetchContacts, fetchChannels, getOrCreateDirectChannel, setActiveChannel } = useChatStore();
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [newChannelName, setNewChannelName] = useState('');
@@ -24,10 +24,14 @@ export const ChatHomeScreen: React.FC<ChatHomeScreenProps> = ({ navigation }) =>
   const [memberSearch, setMemberSearch] = useState('');
 
   useEffect(() => {
+    if (ranch?.id && user?.id) {
+      fetchContacts(ranch.id);
+      fetchChannels(ranch.id, user.id);
+    }
     return () => {
       setActiveChannel(null);
     };
-  }, [setActiveChannel]);
+  }, [ranch?.id, user?.id, fetchContacts, fetchChannels, setActiveChannel]);
 
   const handleCreateGroup = async () => {
     if (!newChannelName.trim() || !ranch?.id || !user?.id) {
@@ -144,11 +148,9 @@ export const ChatHomeScreen: React.FC<ChatHomeScreenProps> = ({ navigation }) =>
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Team Chat</Text>
-        {user?.role === 'super_admin' && (
-          <TouchableOpacity onPress={() => setModalOpen(true)}>
-            <Ionicons name="add-circle-outline" size={28} color={Colors.primaryRust} />
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity onPress={() => setModalOpen(true)}>
+          <Ionicons name="add-circle-outline" size={28} color={Colors.primaryRust} />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.tabs}>
@@ -185,11 +187,26 @@ export const ChatHomeScreen: React.FC<ChatHomeScreenProps> = ({ navigation }) =>
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
-          <PEmptyState
-            icon={activeTab === 'chats' ? "chatbubbles-outline" : "people-outline"}
-            title={activeTab === 'chats' ? "No conversations" : "No staff found"}
-            message={activeTab === 'chats' ? "Start a chat by visiting the Staff tab." : "All onboarded staff will appear here."}
-          />
+          activeTab === 'chats' ? (
+            <View style={{ alignItems: 'center', paddingTop: Spacing.xl }}>
+              <PEmptyState
+                icon="chatbubbles-outline"
+                title="No conversations yet"
+                message="Start a chat with any fellow staff member on your ranch."
+              />
+              <PButton
+                title="New Message"
+                onPress={() => setActiveTab('staff')}
+                style={{ marginTop: Spacing.md, minWidth: 160 }}
+              />
+            </View>
+          ) : (
+            <PEmptyState
+              icon="people-outline"
+              title="No staff found"
+              message="All onboarded staff members on your ranch will appear here."
+            />
+          )
         }
       />
 

@@ -15,6 +15,7 @@ interface AuthStore {
   loginAsRanch: (name: string, accessCode: string) => Promise<void>;
   loginAsOwner: (email: string, password?: string) => Promise<void>;
   loginAsConsumer: (email: string, name: string) => Promise<void>;
+  loginWithAccessToken: (accessToken: string, refreshToken?: string) => Promise<void>;
   signupAsConsumer: (data: Partial<User>) => Promise<void>;
   signupAsRanchOwner: (data: { name: string; email: string; password?: string; ranchName: string; ranchLocation: string }) => Promise<void>;
   fetchStaff: (ranchId: string) => Promise<void>;
@@ -163,6 +164,26 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
         set({ isAuthenticated: true, user, ranch, userRole: userData.role as UserRole });
       }
+    }
+  },
+
+  loginWithAccessToken: async (accessToken: string, refreshToken?: string) => {
+    set({ isLoading: true });
+    try {
+      // Set the session with the access token and optional refresh token
+      const { error: sessionError } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken || '',
+      });
+      
+      if (sessionError) throw sessionError;
+
+      // Then restore the rest of the session (user profile, ranch data, etc.)
+      await get().restoreSession();
+    } catch (error: any) {
+      console.error('Login with access token failed:', error);
+      set({ isLoading: false });
+      throw new Error(error.message || 'Failed to login with access token');
     }
   },
 

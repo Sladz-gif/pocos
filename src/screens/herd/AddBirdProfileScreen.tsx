@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { PInput, PButton } from '../../components/ui';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { HerdStackParamList } from '../../navigation/types';
-import { useLivestockStore } from '../../store/livestockStore';
+import { useProfileStore } from '../../store/profileStore';
 import { useAuthStore } from '../../store/authStore';
 import { v4 as uuidv4 } from 'uuid';
 import { format } from 'date-fns';
@@ -25,7 +25,7 @@ interface Cage {
 }
 
 export const AddBirdProfileScreen: React.FC<AddBirdProfileScreenProps> = ({ navigation }) => {
-  const { addAnimal } = useLivestockStore();
+  const { addProfile } = useProfileStore();
   const { ranch } = useAuthStore();
   
   const [profileName, setProfileName] = useState('');
@@ -58,43 +58,20 @@ export const AddBirdProfileScreen: React.FC<AddBirdProfileScreenProps> = ({ navi
       return;
     }
 
-    if (cages.length === 0) {
-      Alert.alert('Error', 'Please add at least one cage/coup');
-      return;
-    }
-
     if (!ranch?.id) {
       Alert.alert('Error', 'No ranch context found');
       return;
-    }
-
-    // Validate cages
-    for (const cage of cages) {
-      if (!cage.cageName.trim()) {
-        Alert.alert('Error', 'All cages must have a name');
-        return;
-      }
-      if (!cage.birdCount.trim()) {
-        Alert.alert('Error', 'All cages must have a bird count');
-        return;
-      }
-      if (!cage.feedingType.trim()) {
-        Alert.alert('Error', 'All cages must have a feeding type');
-        return;
-      }
     }
 
     try {
       setIsSubmitting(true);
       
       // Create the bird profile
-      await addAnimal({
-        animalId: profileName.trim(),
-        breed: 'Bird',
-        sex: 'female',
-        healthStatus: 'healthy',
+      await addProfile({
+        name: profileName.trim(),
         animalType: 'bird',
-      }, ranch.id);
+        ranchId: ranch.id,
+      });
 
       Alert.alert('Success', 'Bird profile created successfully');
       navigation.goBack();

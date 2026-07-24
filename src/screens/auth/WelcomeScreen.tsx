@@ -1,16 +1,42 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Alert, ScrollView } from 'react-native';
+import React, { useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { AuthStackParamList } from '../../navigation/types';
 import { Colors, Spacing, Typography, Radius } from '../../constants';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 
 type WelcomeScreenProps = {
   navigation: StackNavigationProp<AuthStackParamList, 'Welcome'>;
 };
 
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
+  const tapCountRef = useRef(0);
+  const lastTapAtRef = useRef<number>(0);
+  const TAP_WINDOW_MS = 1500;
+
+  const handleLogoTap = async () => {
+    const now = Date.now();
+    if (now - lastTapAtRef.current > TAP_WINDOW_MS) {
+      tapCountRef.current = 1;
+    } else {
+      tapCountRef.current += 1;
+    }
+    lastTapAtRef.current = now;
+
+    try {
+      Haptics.selectionAsync?.();
+    } catch (e) {
+      // no-op, haptics best-effort only
+    }
+
+    if (tapCountRef.current >= 3) {
+      tapCountRef.current = 0;
+      navigation.navigate('DeviceHealthCheck');
+    }
+  };
+
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
@@ -20,7 +46,9 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
         >
           <View style={styles.content}>
             <View style={styles.header}>
-              <Text style={styles.logoText}>Pocos</Text>
+              <Pressable onPress={handleLogoTap} delayLongPress={0} hitSlop={8}>
+                <Text style={styles.logoText}>Animal</Text>
+              </Pressable>
               <Text style={styles.tagline}>Every herd. Every story.</Text>
             </View>
 

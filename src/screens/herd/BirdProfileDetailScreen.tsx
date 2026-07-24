@@ -6,7 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { PCard, PButton, PInput, PDeleteModal } from '../../components/ui';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { HerdStackParamList } from '../../navigation/types';
-import { useLivestockStore } from '../../store/livestockStore';
+import { useProfileStore } from '../../store/profileStore';
+import { useJetsonStore } from '../../store/jetsonStore';
 import { v4 as uuidv4 } from 'uuid';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { format } from 'date-fns';
@@ -26,8 +27,9 @@ interface CageFormData {
 }
 
 export const BirdProfileDetailScreen: React.FC<BirdProfileDetailScreenProps> = ({ navigation, route }) => {
-  const { animals } = useLivestockStore();
-  const profile = animals.find(a => a.id === route.params.id);
+  const { profiles, updateProfile } = useProfileStore();
+  const { linkCoopDevice, clearError } = useJetsonStore();
+  const profile = profiles.find(p => p.id === route.params.id);
   
   const [cages, setCages] = useState<CageFormData[]>([]);
   const [showAddCage, setShowAddCage] = useState(false);
@@ -35,6 +37,33 @@ export const BirdProfileDetailScreen: React.FC<BirdProfileDetailScreenProps> = (
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [cageToDelete, setCageToDelete] = useState<string | null>(null);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [deviceAddress, setDeviceAddress] = useState(profile?.deviceAddress || '');
+  const [isEditingDevice, setIsEditingDevice] = useState(false);
+
+  // Device address validation regex: POU-XXXX-XXXX-XXXX (case insensitive)
+  const deviceAddressRegex = /^POU-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/i;
+
+  const handleSaveDeviceAddress = async () => {
+    if (!profile) return;
+
+    const trimmedAddress = deviceAddress.trim().toUpperCase();
+    if (trimmedAddress && !deviceAddressRegex.test(trimmedAddress)) {
+      Alert.alert('Error', 'Device address must be in format POU-XXXX-XXXX-XXXX');
+      return;
+    }
+
+    if (trimmedAddress) {
+      const success = await linkCoopDevice(profile.id, trimmedAddress);
+      if (!success) {
+        Alert.alert('Error', 'Failed to link device. It may be already linked to another ranch.');
+        return;
+      }
+    }
+
+    await updateProfile(profile.id, { deviceAddress: trimmedAddress || undefined });
+    setIsEditingDevice(false);
+    clearError();
+  };
 
   const handleAddCage = () => {
     const newCage: CageFormData = {
@@ -217,13 +246,30 @@ export const BirdProfileDetailScreen: React.FC<BirdProfileDetailScreenProps> = (
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={Colors.charcoalInk} />
         </TouchableOpacity>
-        <Text style={styles.title}>{profile.animalId}</Text>
+        <Text style={styles.title}>{profile.name}</Text>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="close" size={24} color={Colors.charcoalInk} />
         </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.quickActions}>
+          <TouchableOpacity 
+            style={styles.quickActionButton}
+            onPress={() => navigation.navigate('BirdCount', { profileId: profile.id })}
+          >
+            <Ionicons name="add-circle-outline" size={32} color={Colors.primaryRust} />
+            <Text style={styles.quickActionText}>Record Count</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.quickActionButton}
+            onPress={() => navigation.navigate('BirdCountHistory', { profileId: profile.id })}
+          >
+            <Ionicons name="analytics-outline" size={32} color={Colors.primaryRust} />
+            <Text style={styles.quickActionText}>View History</Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.profileInfo}>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Type:</Text>
@@ -238,6 +284,54 @@ export const BirdProfileDetailScreen: React.FC<BirdProfileDetailScreenProps> = (
             <Text style={styles.infoValue}>
               {cages.reduce((sum, cage) => sum + parseInt(cage.birdCount || '0'), 0)}
             </Text>
+          </View>
+          
+          {/* Device Address Section */}
+          <View style={styles.deviceSection}>
+            <View style={styles.deviceHeader}>
+              <Text style={styles.infoLabel}>Device Address:</Text>
+              {!isEditingDevice && (
+                <TouchableOpacity onPress={() => setIsEditingDevice(true)}>
+                  <Ionicons name="create-outline" size={18} color={Colors.primaryRust} />
+                </TouchableOpacity>
+              )}
+            </View>
+            
+            {isEditingDevice ? (
+              <View style={styles.deviceEditContainer}>
+                <PInput
+                  placeholder="POU-XXXX-XXXX-XXXX"
+                  value={deviceAddress}
+                  onChangeText={(text) => setDeviceAddress(text.toUpperCase())}
+                  autoCapitalize="characters"
+                  style={styles.deviceInput}
+                />
+                <Text style={styles.deviceHelperText}>
+                  Find this on the label inside the camera unit. Leave it blank and link it later if the hardware isn't installed yet.
+                </Text>
+                <View style={styles.deviceActions}>
+                  <TouchableOpacity 
+                    onPress={() => {
+                      setDeviceAddress(profile?.deviceAddress || '');
+                      setIsEditingDevice(false);
+                    }}
+                    style={styles.deviceCancelButton}
+                  >
+                    <Text style={styles.deviceCancelText}>Cancel</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    onPress={handleSaveDeviceAddress}
+                    style={styles.deviceSaveButton}
+                  >
+                    <Text style={styles.deviceSaveText}>Save</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : (
+              <Text style={styles.deviceAddressText}>
+                {profile?.deviceAddress || 'Not linked'}
+              </Text>
+            )}
           </View>
         </View>
 
@@ -315,6 +409,27 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: Spacing.xl,
   },
+  quickActions: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    marginBottom: Spacing.xl,
+  },
+  quickActionButton: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: Radius.lg,
+    padding: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.softAsh,
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  quickActionText: {
+    fontFamily: 'DMSans-Medium',
+    fontSize: Typography.fontSize.sm,
+    color: Colors.charcoalInk,
+    textAlign: 'center',
+  },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -349,6 +464,60 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans-Bold',
     fontSize: Typography.fontSize.base,
     color: Colors.charcoalInk,
+  },
+  deviceSection: {
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.softAsh,
+  },
+  deviceHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  deviceAddressText: {
+    fontFamily: 'DMMono-Regular',
+    fontSize: Typography.fontSize.base,
+    color: Colors.charcoalInk,
+  },
+  deviceEditContainer: {
+    gap: Spacing.sm,
+  },
+  deviceInput: {
+    marginBottom: 0,
+  },
+  deviceHelperText: {
+    fontFamily: 'DMSans-Regular',
+    fontSize: Typography.fontSize.sm,
+    color: Colors.mutedSienna,
+  },
+  deviceActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: Spacing.md,
+    marginTop: Spacing.sm,
+  },
+  deviceCancelButton: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+  },
+  deviceCancelText: {
+    fontFamily: 'DMSans-Medium',
+    fontSize: Typography.fontSize.base,
+    color: Colors.mutedSienna,
+  },
+  deviceSaveButton: {
+    backgroundColor: Colors.primaryRust,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.md,
+  },
+  deviceSaveText: {
+    fontFamily: 'DMSans-Medium',
+    fontSize: Typography.fontSize.base,
+    color: '#FFFFFF',
   },
   cagesSection: {
     flex: 1,

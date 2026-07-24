@@ -7,6 +7,7 @@ export type AuthStackParamList = {
   RanchOwnerSignUp: undefined;
   ConsumerSignUp: undefined;
   ConsumerSignIn: undefined;
+  DeviceHealthCheck: undefined;
 };
 
 export type RanchTabParamList = {
@@ -26,13 +27,13 @@ export type HomeStackParamList = {
 export type HerdStackParamList = {
   Herd: undefined;
   AnimalDetail: { id: string };
-  AddAnimal: undefined;
+  AddAnimal: { animalType?: string };
   AncestryTree: { id: string };
   ProfileDetail: { id: string };
-  BirdCount: { profileId: string };
-  BirdCountHistory: { profileId: string };
-  AddBirdProfile: { profileId: string };
-  BirdProfileDetail: { profileId: string };
+  BirdCount: { profileId: string } | undefined;
+  BirdCountHistory: { profileId: string } | undefined;
+  AddBirdProfile: { profileId: string } | undefined;
+  BirdProfileDetail: { id: string };
   CreateProfile: undefined;
   SelectAnimalType: undefined;
 };
@@ -65,6 +66,7 @@ export type AdminStackParamList = {
   StaffActivity: undefined;
   Analytics: undefined;
   ManageRanchProfile: undefined;
+  DeviceHealthCheck: undefined;
   ProfileHome: undefined;
   NotificationSettings: undefined;
   HelpSupport: undefined;

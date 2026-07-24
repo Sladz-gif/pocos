@@ -119,11 +119,12 @@ export const useChatStore = create<ChatStore>((set, get) => ({
             senderId: lastMsg.sender_id,
             senderName: lastMsg.sender_name,
             content: lastMsg.content,
-            type: 'text',
+            type: 'text' as const,
             status: 'sent',
             isRead: false,
             readBy: [],
             createdAt: lastMsg.created_at,
+            updatedAt: lastMsg.created_at,
           } : undefined,
           createdAt: ch.created_at,
           updatedAt: ch.created_at,
@@ -151,7 +152,10 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         imageUrl: msg.image_url,
         type: 'text',
         status: 'sent',
+        isRead: false,
+        readBy: [],
         createdAt: msg.created_at,
+        updatedAt: msg.created_at,
       }));
       set((state) => ({
         messages: { ...state.messages, [channelId]: messages },
@@ -243,9 +247,12 @@ export const useChatStore = create<ChatStore>((set, get) => ({
             senderName: payload.new.sender_name,
             content: payload.new.content,
             imageUrl: payload.new.image_url,
-            type: 'text',
+            type: 'text' as const,
             status: 'sent',
+            isRead: false,
+            readBy: [],
             createdAt: payload.new.created_at,
+            updatedAt: payload.new.created_at,
           };
           set((state) => ({
             messages: {
@@ -308,8 +315,8 @@ export const useChatStore = create<ChatStore>((set, get) => ({
           const currentUserId = userId;
           
           // Update last message for the channel
-          set((state) => {
-            const channels = state.channels.map(ch => {
+          set((state: any) => {
+            const channels = state.channels.map((ch: any) => {
               if (ch.id === newMessage.channel_id) {
                 return {
                   ...ch,
@@ -319,11 +326,12 @@ export const useChatStore = create<ChatStore>((set, get) => ({
                     senderId: newMessage.sender_id,
                     senderName: newMessage.sender_name,
                     content: newMessage.content,
-                    type: 'text',
-                    status: 'sent',
+                    type: 'text' as const,
+                    status: 'sent' as const,
                     isRead: false,
                     readBy: [],
                     createdAt: newMessage.created_at,
+                    updatedAt: newMessage.created_at,
                   },
                   // Only increment unread if not the active channel and not from current user
                   unreadCount: (ch.id !== get().activeChannel?.id && newMessage.sender_id !== currentUserId) 
@@ -333,7 +341,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
               }
               return ch;
             });
-            const totalUnreadCount = channels.reduce((sum, ch) => sum + (ch.unreadCount || 0), 0);
+            const totalUnreadCount = channels.reduce((sum: any, ch: any) => sum + (ch.unreadCount || 0), 0);
             return { channels, totalUnreadCount };
           });
         }
@@ -398,28 +406,18 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     }
 
     // Add participants
-    const participants = participantIds.map(userId => ({
+    const participantRows = participantIds.map((pid) => ({
+      id: uuidv4(),
       channel_id: id,
-      user_id: userId,
+      user_id: pid,
     }));
-    const { error: pError } = await supabase.from('channel_participants').insert(participants);
+    const { error: pError } = await supabase.from('channel_participants').insert(participantRows);
     if (pError) {
       console.error('Add participants error:', pError.message);
+      return id; // Still return ID even if adding participants fails
     }
 
-    const newChannel: Channel = {
-      id,
-      name,
-      type: type as any,
-      ranchId,
-      createdBy,
-      participants: participantIds,
-      isAnnouncement: type === 'announcement',
-      unreadCount: 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    set((state) => ({ channels: [newChannel, ...state.channels] }));
+    await get().fetchChannels(ranchId, createdBy);
     return id;
   },
 
@@ -427,14 +425,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     const { error } = await supabase.from('chat_messages').delete().eq('id', messageId);
     if (error) {
       console.error('Delete message error:', error.message);
-      throw error;
+      throw new Error('Failed to delete message');
     }
-    // Update local state
-    set((state: any) => ({
-      messages: {
-        ...state.messages,
-        [channelId]: (state.messages[channelId] || []).filter((m: any) => m.id !== messageId)
-      }
-    }));
   },
 }));

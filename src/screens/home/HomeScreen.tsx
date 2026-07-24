@@ -18,7 +18,7 @@ type HomeScreenProps = {
   navigation: StackNavigationProp<HomeStackParamList, 'Home'>;
 };
 
-export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
+export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { user, ranch, staff, fetchStaff } = useAuthStore();
   const { animals, medicationRecords, fetchAnimals, fetchMedicationRecords } = useLivestockStore();

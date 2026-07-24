@@ -7,6 +7,7 @@ import { RanchOwnerLoginScreen } from '../screens/auth/RanchOwnerLoginScreen';
 import { RanchOwnerSignUpScreen } from '../screens/auth/RanchOwnerSignUpScreen';
 import { ConsumerSignUpScreen } from '../screens/auth/ConsumerSignUpScreen';
 import { ConsumerSignInScreen } from '../screens/auth/ConsumerSignInScreen';
+import { DeviceHealthCheckScreen } from '../screens/admin/DeviceHealthCheckScreen';
 
 const Stack = createStackNavigator<AuthStackParamList>();
 
@@ -19,6 +20,7 @@ export const AuthNavigator = () => {
       <Stack.Screen name="RanchOwnerSignUp" component={RanchOwnerSignUpScreen} />
       <Stack.Screen name="ConsumerSignUp" component={ConsumerSignUpScreen} />
       <Stack.Screen name="ConsumerSignIn" component={ConsumerSignInScreen} />
+      <Stack.Screen name="DeviceHealthCheck" component={DeviceHealthCheckScreen} />
     </Stack.Navigator>
   );
 };

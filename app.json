@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "POCOS",
+    "name": "Animal",
     "slug": "pocos-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -58,9 +58,9 @@
     "scheme": "pocos-app",
     "extra": {
       "eas": {
-        "projectId": "81f955f7-6268-453c-b897-b440c1b7436b"
+        "projectId": "c27100bd-47ea-44ca-aede-edc1845197a8"
       }
     },
-    "owner": "bbbcvd"
+    "owner": "tttttt2222s-team"
   }
 }

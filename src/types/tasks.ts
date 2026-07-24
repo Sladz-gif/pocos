@@ -41,4 +41,5 @@ export interface Comment extends BaseEntity {
   userName: string;
   content: string;
   attachments?: string[];
+  time?: string;
 }

@@ -36,6 +36,7 @@ export interface User extends BaseEntity {
   isActive: boolean;
   permissions: string[];
   lastLoginAt?: string;
+  password?: string;
 }
 
 export interface Session {

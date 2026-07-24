@@ -46,7 +46,7 @@ export const PDeleteModal: React.FC<DeleteModalProps> = ({
             title="Delete"
             variant="primary"
             onPress={onConfirm}
-            style={[styles.actionButton, styles.deleteButton]}
+            style={[styles.actionButton, styles.deleteButton] as any}
           />
         </View>
       </View>

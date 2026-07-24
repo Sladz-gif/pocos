@@ -15,7 +15,7 @@ interface TaskStore {
   
   // Actions
   fetchTasks: (ranchId: string) => Promise<void>;
-  addTask: (taskData: Partial<Task>, ranchId: string) => Promise<void>;
+  addTask: (taskData: Partial<Task> & { recurrence?: any; recurring?: any }, ranchId: string) => Promise<void>;
   updateTask: (id: string, updates: Partial<Task>) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   setSelectedTask: (task: Task | null) => void;
@@ -65,7 +65,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
         description: t.description || '',
         assignedTo: t.assigned_to_user?.name || t.assigned_to || 'Unassigned',
         priority: t.priority as any,
-        recurring: t.recurring as any,
+        recurrence: t.recurring as any,
         status: t.status as any,
         dueDate: t.due_date,
         notes: t.notes,
@@ -73,6 +73,8 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
           id: s.id,
           title: s.title,
           completed: s.is_completed,
+          createdAt: s.created_at,
+          updatedAt: s.updated_at,
         })),
         comments: (t.task_comments || []).map((c: any) => ({
           id: c.id,
@@ -80,8 +82,10 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
           userName: c.user_name,
           content: c.content,
           createdAt: c.created_at,
-          time: c.created_at,
+          updatedAt: c.updated_at,
         })),
+        attachments: t.attachments || [],
+        tags: t.tags || [],
         createdAt: t.created_at,
         updatedAt: t.updated_at,
       }));
@@ -91,14 +95,14 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     }
   },
 
-  addTask: async (taskData: Partial<Task>, ranchId: string) => {
+  addTask: async (taskData: Partial<Task> & { recurrence?: any; recurring?: any }, ranchId: string) => {
     const task = { 
       id: uuidv4(), 
       title: taskData.title,
       description: taskData.description,
       assigned_to: taskData.assignedTo,
       priority: taskData.priority || 'medium',
-      recurring: taskData.recurring || 'none',
+      recurring: taskData.recurrence || taskData.recurring || 'none',
       due_date: taskData.dueDate,
       notes: taskData.notes,
       ranch_id: ranchId,
@@ -115,12 +119,14 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       description: task.description || '',
       assignedTo: task.assigned_to,
       priority: task.priority as any,
-      recurring: task.recurring as any,
+      recurrence: task.recurring as any,
       status: 'pending',
       dueDate: task.due_date,
       notes: task.notes,
       subtasks: [],
       comments: [],
+      attachments: [],
+      tags: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -149,7 +155,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
         set((state: any) => ({
           tasks: state.tasks.map((t: any) => 
             t.id === task.id 
-              ? { ...t, subtasks: subtasksToInsert.map(s => ({ id: s.id, title: s.title, completed: false })) } 
+              ? { ...t, subtasks: subtasksToInsert.map(s => ({ id: s.id, title: s.title, completed: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() })) } 
               : t
           )
         }));
@@ -221,7 +227,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     }
     set((state: any) => ({
       tasks: state.tasks.map((t: any) =>
-        t.id === taskId ? { ...t, subtasks: [...t.subtasks, { id: subtask.id, title, completed: false }] } : t
+        t.id === taskId ? { ...t, subtasks: [...t.subtasks, { id: subtask.id, title, completed: false, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }] } : t
       ),
     }));
   },
@@ -235,7 +241,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     }
     set((state: any) => ({
       tasks: state.tasks.map((t: any) =>
-        t.id === taskId ? { ...t, comments: [...t.comments, { ...comment, createdAt: new Date().toISOString(), time: new Date().toISOString(), userId, userName }] } : t
+        t.id === taskId ? { ...t, comments: [...t.comments, { id: comment.id, userId, userName, content, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }] } : t
       ),
     }));
   },

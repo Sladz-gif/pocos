@@ -7,6 +7,7 @@ import { OnboardStaffScreen } from '../screens/admin/OnboardStaffScreen';
 import { StaffActivityScreen } from '../screens/admin/StaffActivityScreen';
 import { AnalyticsScreen } from '../screens/admin/AnalyticsScreen';
 import { ManageRanchProfileScreen } from '../screens/admin/ManageRanchProfileScreen';
+import { DeviceHealthCheckScreen } from '../screens/admin/DeviceHealthCheckScreen';
 import { StaffProfileScreen } from '../screens/profile/StaffProfileScreen';
 import { NotificationSettingsScreen } from '../screens/profile/NotificationSettingsScreen';
 import { HelpSupportScreen } from '../screens/profile/HelpSupportScreen';
@@ -57,6 +58,11 @@ export const AdminNavigator = () => {
         name="ManageRanchProfile" 
         component={ManageRanchProfileScreen} 
         options={{ title: 'Ranch Profile' }}
+      />
+      <Stack.Screen 
+        name="DeviceHealthCheck" 
+        component={DeviceHealthCheckScreen} 
+        options={{ title: 'Device Health' }}
       />
       <Stack.Screen 
         name="ProfileHome" 

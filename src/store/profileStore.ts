@@ -46,6 +46,7 @@ export const useProfileStore = create<ProfileStore>((set, get) => ({
         animalType: row.animal_type,
         ranchId: row.ranch_id,
         customFields: row.custom_fields || [],
+        deviceAddress: row.device_address,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
       }));
@@ -107,6 +108,7 @@ export const useProfileStore = create<ProfileStore>((set, get) => ({
       if (updates.name) supabaseUpdates.name = updates.name;
       if (updates.animalType) supabaseUpdates.animal_type = updates.animalType;
       if (updates.customFields) supabaseUpdates.custom_fields = updates.customFields;
+      if (updates.deviceAddress !== undefined) supabaseUpdates.device_address = updates.deviceAddress;
       
       const { error } = await supabase
         .from('profiles')

@@ -5,9 +5,10 @@ export type AnimalType = 'cattle' | 'sheep' | 'goat' | 'horse' | 'donkey' | 'bir
 export interface CustomField {
   id: string;
   label: string;
-  fieldType: 'text' | 'number' | 'date' | 'select';
+  fieldType: 'text' | 'number' | 'date' | 'select' | 'boolean';
   options?: string[];
-  required: boolean;
+  required?: boolean;
+  value?: string | number | boolean;
 }
 
 export interface Profile extends BaseEntity {
@@ -16,6 +17,7 @@ export interface Profile extends BaseEntity {
   animalType: AnimalType;
   ranchId: string;
   customFields?: CustomField[];
+  deviceAddress?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -47,6 +49,8 @@ export interface Animal extends BaseEntity {
   profileId?: string;
   animalType?: AnimalType;
   photos?: string[];
+  imageUrl?: string;
+  image_url?: string;
   tags?: string[];
   notes?: string;
   healthStatus: HealthStatus;
@@ -75,6 +79,7 @@ export interface Animal extends BaseEntity {
   isMedicated?: boolean;
   medicationName?: string;
   medicationDate?: string;
+  dueDate?: string;
 }
 
 export interface OwnershipRecord {
@@ -127,6 +132,7 @@ export interface MedicationRecord {
 
 export interface PregnancyRecord {
   id: string;
+  animalId: string;
   startDate: string;
   expectedBirthDate?: string;
   actualBirthDate?: string;

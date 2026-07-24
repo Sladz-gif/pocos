@@ -102,6 +102,20 @@ const styles = StyleSheet.create({
   listContent: {
     padding: Spacing.xl,
   },
+  listHeader: {
+    marginBottom: Spacing.lg,
+  },
+  headerTitle: {
+    fontFamily: 'PlayfairDisplay-Bold',
+    fontSize: Typography.fontSize.lg,
+    color: Colors.charcoalInk,
+    marginBottom: Spacing.xs,
+  },
+  headerSubtitle: {
+    fontFamily: 'DMSans-Regular',
+    fontSize: Typography.fontSize.sm,
+    color: Colors.mutedSienna,
+  },
   activityCard: {
     flexDirection: 'row',
     padding: Spacing.lg,

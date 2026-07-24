@@ -66,6 +66,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({ route, n
       scale.value = withSpring(1);
     });
 
+  // @ts-ignore
   const animatedStyle = useAnimatedStyle(() => {
     return {
       transform: [
@@ -80,7 +81,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({ route, n
         { translateY: height / 2 },
       ],
     };
-  });
+  }) as any;
 
   useEffect(() => {
     fetchMessages(id);

@@ -180,7 +180,7 @@ export const ManageTeamScreen: React.FC<ManageTeamScreenProps> = ({ navigation }
               title="Save Changes"
               onPress={handleUpdate}
               loading={isLoading}
-              style={[styles.flex1, { marginLeft: Spacing.md }]}
+              style={[styles.flex1, { marginLeft: Spacing.md }] as any}
             />
           </View>
         </ScrollView>

@@ -23,7 +23,7 @@ export type UserRole = 'super_admin' | 'ranch_owner' | 'staff' | 'store_manager'
 
 export type Gender = 'male' | 'female';
 
-export type HealthStatus = 'healthy' | 'sick' | 'recovering' | 'quarantined' | 'quarantine' | 'deceased';
+export type HealthStatus = 'healthy' | 'sick' | 'recovering' | 'quarantined' | 'quarantine' | 'deceased' | 'pregnant' | 'lactating' | 'dry';
 
 export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'blocked';
 

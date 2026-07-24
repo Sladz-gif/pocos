@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors, Spacing, Typography, Radius } from '../../constants';
+import { Colors, Spacing, Typography, Radius, Shadows } from '../../constants';
 import { Ionicons } from '@expo/vector-icons';
 import { PCard, PBadge, PChip, PEmptyState } from '../../components/ui';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     padding: Spacing.lg,
     borderRadius: Radius.lg,
-    ...Colors.shadows?.sm,
+    ...Shadows.sm,
   },
   sectionTitle: {
     fontFamily: 'DMSans-Bold',

@@ -7,3 +7,4 @@ export * from './analyticsStore';
 export * from './activityLogStore';
 export * from './discountStore';
 export * from './uiStore';
+export * from './poultryStore';
