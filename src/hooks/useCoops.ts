@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../config/supabase';
 import type { BirdDetectionEvent, CoopTimelineEntry } from '../types/coop';
 import { format, isSameDay, isYesterday } from 'date-fns';
+import { TEMP_DEVICE_SECRET } from '../config/liveView';
 
 const PAGE_SIZE = 30;
 
@@ -108,5 +109,36 @@ export const useCoopTimeline = (assetId?: string, page = 0) => {
         setIsLoading(false);
       }
     },
+  };
+};
+
+export const useRequestLiveView = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const requestLiveView = async (assetId: string, leaseMinutes: number = 2) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { data, error } = await supabase.rpc('request_live_view', {
+        p_asset_id: assetId,
+        p_lease_minutes: leaseMinutes,
+        p_device_secret: TEMP_DEVICE_SECRET,
+      });
+
+      if (error) throw error;
+      return data as boolean;
+    } catch (e: any) {
+      setError(e.message || 'Failed to request live view');
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return {
+    requestLiveView,
+    isLoading,
+    error,
   };
 };

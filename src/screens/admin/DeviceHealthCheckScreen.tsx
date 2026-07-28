@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, RefreshControl, Image, ActivityIndicator } from 'react-native';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, RefreshControl, Image, ActivityIndicator, AppState } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, Typography, Radius } from '../../constants';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,7 +11,8 @@ import { useJetsonStore } from '../../store/jetsonStore';
 import { useProfileStore } from '../../store/profileStore';
 import { useAuthStore } from '../../store/authStore';
 import { Asset, DeviceTestSnapshot } from '../../types';
-import { format, isWithinInterval, subHours } from 'date-fns';
+import { format, isWithinInterval, subHours, formatDistanceToNow } from 'date-fns';
+import { useRequestLiveView } from '../../hooks/useCoops';
 
 type DeviceHealthCheckScreenProps = {
   navigation: StackNavigationProp<AdminStackParamList & AuthStackParamList, any>;
@@ -22,13 +23,25 @@ interface DeviceWithCoop extends Asset {
   latestSnapshot?: DeviceTestSnapshot;
 }
 
+interface LiveViewState {
+  isWatching: boolean;
+  frameUrl: string | null;
+  lastUpdated: Date | null;
+  isOffline: boolean;
+  watchingSince: Date | null;
+}
+
 export const DeviceHealthCheckScreen: React.FC<DeviceHealthCheckScreenProps> = ({ navigation }) => {
   const { userRole } = useAuthStore();
   const { assets, fetchAssets, fetchTestSnapshots, requestTestSnapshot, error, clearError } = useJetsonStore();
   const { profiles } = useProfileStore();
+  const { requestLiveView } = useRequestLiveView();
   const [refreshing, setRefreshing] = useState(false);
   const [devicesWithCoops, setDevicesWithCoops] = useState<DeviceWithCoop[]>([]);
   const [hasSession, setHasSession] = useState<boolean | null>(null);
+  const [liveViewState, setLiveViewState] = useState<Record<string, LiveViewState>>({});
+  const appState = useRef(AppState.currentState);
+  const intervalsRef = useRef<Record<string, { frameInterval: NodeJS.Timeout; leaseInterval: NodeJS.Timeout }>>({});
   const isAuthorizedRole = userRole === 'super_admin' || userRole === 'ranch_owner' || userRole === 'staff' || userRole === 'store_manager';
 
   useEffect(() => {
@@ -101,6 +114,35 @@ export const DeviceHealthCheckScreen: React.FC<DeviceHealthCheckScreenProps> = (
     }
   }, [hasSession, isAuthorizedRole, loadData]);
 
+  // Handle app state changes (background/foreground)
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      appState.current = nextAppState;
+
+      // Stop watching when app goes to background
+      if (nextAppState !== 'active') {
+        Object.keys(liveViewState).forEach(assetId => {
+          if (liveViewState[assetId]?.isWatching) {
+            stopWatching(assetId);
+          }
+        });
+      }
+    });
+
+    return () => subscription.remove();
+  }, [liveViewState]);
+
+  // Cleanup intervals on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(intervalsRef.current).forEach(intervals => {
+        clearInterval(intervals.frameInterval);
+        clearInterval(intervals.leaseInterval);
+      });
+      intervalsRef.current = {};
+    };
+  }, []);
+
   const handleRequestSnapshot = async (assetId: string) => {
     try {
       const success = await requestTestSnapshot(assetId);
@@ -114,6 +156,101 @@ export const DeviceHealthCheckScreen: React.FC<DeviceHealthCheckScreenProps> = (
     }
   };
 
+  const startWatching = useCallback(async (assetId: string) => {
+    const success = await requestLiveView(assetId, 2);
+    if (!success) {
+      Alert.alert('Error', 'Failed to start live view');
+      return;
+    }
+
+    setLiveViewState(prev => ({
+      ...prev,
+      [assetId]: {
+        isWatching: true,
+        frameUrl: null,
+        lastUpdated: null,
+        isOffline: false,
+        watchingSince: new Date(),
+      },
+    }));
+
+    // Start frame polling (1s interval)
+    const frameInterval = setInterval(() => {
+      fetchLiveFrame(assetId);
+    }, 1000);
+
+    // Start lease renewal (60s interval)
+    const leaseInterval = setInterval(() => {
+      if (appState.current === 'active') {
+        requestLiveView(assetId, 2);
+      }
+    }, 60000);
+
+    // Store intervals in ref for cleanup
+    intervalsRef.current[assetId] = { frameInterval, leaseInterval };
+  }, [requestLiveView, appState]);
+
+  const stopWatching = useCallback((assetId: string) => {
+    const intervals = intervalsRef.current[assetId];
+    if (intervals) {
+      clearInterval(intervals.frameInterval);
+      clearInterval(intervals.leaseInterval);
+      delete intervalsRef.current[assetId];
+    }
+
+    setLiveViewState(prev => ({
+      ...prev,
+      [assetId]: {
+        isWatching: false,
+        frameUrl: null,
+        lastUpdated: null,
+        isOffline: false,
+        watchingSince: null,
+      },
+    }));
+  }, []);
+
+  const fetchLiveFrame = useCallback(async (assetId: string) => {
+    try {
+      const { data } = supabase.storage
+        .from('poultry-images')
+        .getPublicUrl(`live_view_${assetId}.jpg`);
+
+      const urlWithCacheBust = `${data.publicUrl}?t=${Date.now()}`;
+
+      // Preload image to check if it loads successfully
+      Image.getSize(urlWithCacheBust, () => {
+        setLiveViewState(prev => ({
+          ...prev,
+          [assetId]: {
+            ...prev[assetId],
+            frameUrl: urlWithCacheBust,
+            lastUpdated: new Date(),
+            isOffline: false,
+          },
+        }));
+      }, () => {
+        // Image failed to load
+        setLiveViewState(prev => {
+          const state = prev[assetId];
+          if (state?.isWatching && state.lastUpdated && Date.now() - state.lastUpdated.getTime() > 10000) {
+            return {
+              ...prev,
+              [assetId]: {
+                ...prev[assetId],
+                isOffline: true,
+                isWatching: false,
+              },
+            };
+          }
+          return prev;
+        });
+      });
+    } catch (e) {
+      console.error('Failed to fetch live frame:', e);
+    }
+  }, []);
+
   const isOnline = (asset: Asset) => {
     if (!asset.last_seen_at) return false;
     const now = new Date();
@@ -123,7 +260,8 @@ export const DeviceHealthCheckScreen: React.FC<DeviceHealthCheckScreenProps> = (
 
   const renderDeviceItem = ({ item }: { item: DeviceWithCoop }) => {
     const online = isOnline(item);
-    
+    const liveState = liveViewState[item.asset_id];
+
     return (
       <PCard style={styles.deviceCard}>
         <View style={styles.deviceHeader}>
@@ -139,6 +277,52 @@ export const DeviceHealthCheckScreen: React.FC<DeviceHealthCheckScreenProps> = (
           <Text style={[styles.statusText, online ? styles.statusTextOnline : styles.statusTextOffline]}>
             {online ? 'Online' : 'Offline'}
           </Text>
+        </View>
+
+        {/* Live View Section */}
+        <View style={styles.liveViewSection}>
+          <Text style={styles.sectionTitle}>Live View</Text>
+          {!liveState?.isWatching && !liveState?.isOffline ? (
+            <PButton
+              title="Watch Feed"
+              onPress={() => startWatching(item.asset_id)}
+              style={styles.watchButton}
+            />
+          ) : liveState?.isOffline ? (
+            <View style={styles.offlineContainer}>
+              <Ionicons name="wifi-outline" size={32} color={Colors.mutedSienna} />
+              <Text style={styles.offlineText}>Camera's offline — can't start a live view right now</Text>
+            </View>
+          ) : (
+            <View style={styles.liveViewContainer}>
+              <View style={styles.liveViewHeader}>
+                <View style={styles.liveBadge}>
+                  <View style={styles.liveDot} />
+                  <Text style={styles.liveBadgeText}>live</Text>
+                </View>
+                {liveState?.lastUpdated && (
+                  <Text style={styles.liveUpdatedText}>
+                    updated {formatDistanceToNow(new Date(liveState.lastUpdated), { addSuffix: true })}
+                  </Text>
+                )}
+                <TouchableOpacity onPress={() => stopWatching(item.asset_id)} style={styles.stopButton}>
+                  <Ionicons name="close" size={20} color={Colors.charcoalInk} />
+                </TouchableOpacity>
+              </View>
+              {liveState?.frameUrl ? (
+                <Image
+                  source={{ uri: liveState.frameUrl }}
+                  style={styles.liveFrame}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View style={styles.liveFramePlaceholder}>
+                  <ActivityIndicator color={Colors.primaryRust} />
+                  <Text style={styles.loadingText}>Loading feed...</Text>
+                </View>
+              )}
+            </View>
+          )}
         </View>
 
         {item.latestSnapshot && (
@@ -487,5 +671,91 @@ const styles = StyleSheet.create({
     color: Colors.mutedSienna,
     marginTop: Spacing.xs,
     textAlign: 'center',
+  },
+  liveViewSection: {
+    marginBottom: Spacing.md,
+  },
+  sectionTitle: {
+    fontFamily: 'DMSans-Bold',
+    fontSize: Typography.fontSize.sm,
+    color: Colors.charcoalInk,
+    marginBottom: Spacing.sm,
+  },
+  watchButton: {
+    marginTop: Spacing.sm,
+  },
+  offlineContainer: {
+    alignItems: 'center',
+    paddingVertical: Spacing.lg,
+    backgroundColor: Colors.softAsh + '30',
+    borderRadius: Radius.md,
+  },
+  offlineText: {
+    fontFamily: 'DMSans-Regular',
+    fontSize: Typography.fontSize.sm,
+    color: Colors.mutedSienna,
+    marginTop: Spacing.sm,
+    textAlign: 'center',
+  },
+  liveViewContainer: {
+    backgroundColor: Colors.charcoalInk,
+    borderRadius: Radius.md,
+    overflow: 'hidden',
+  },
+  liveViewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  liveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.dangerCrimson,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: Radius.sm,
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#FFFFFF',
+    marginRight: Spacing.xs,
+  },
+  liveBadgeText: {
+    fontFamily: 'DMSans-Bold',
+    fontSize: 10,
+    color: '#FFFFFF',
+    textTransform: 'uppercase',
+  },
+  liveUpdatedText: {
+    fontFamily: 'DMSans-Regular',
+    fontSize: 10,
+    color: '#FFFFFF',
+    opacity: 0.8,
+  },
+  stopButton: {
+    padding: Spacing.xs,
+  },
+  liveFrame: {
+    width: '100%',
+    height: 200,
+    backgroundColor: Colors.charcoalInk,
+  },
+  liveFramePlaceholder: {
+    width: '100%',
+    height: 200,
+    backgroundColor: Colors.charcoalInk,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontFamily: 'DMSans-Regular',
+    fontSize: Typography.fontSize.sm,
+    color: '#FFFFFF',
+    marginTop: Spacing.sm,
   },
 });
