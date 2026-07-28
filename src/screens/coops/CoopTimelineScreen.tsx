@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, Image, Dimensions, RefreshControl } from 'react-native';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, Image, Dimensions, RefreshControl, ActivityIndicator, AppState } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, Typography, Radius } from '../../constants';
 import { Ionicons } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { useCoopTimeline } from '../../hooks/useCoops';
+import { useCoopTimeline, useRequestLiveView } from '../../hooks/useCoops';
+import { PButton } from '../../components/ui';
 import type { BirdDetectionEvent } from '../../types/coop';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
+import { supabase } from '../../config/supabase';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -19,12 +21,116 @@ export const CoopTimelineScreen: React.FC<CoopTimelineScreenProps> = ({ navigati
   const assetId = route?.params?.deviceAddress;
   const coopName = route?.params?.coopName || 'Coop';
   const { groupedEntries, isLoading, error, refresh } = useCoopTimeline(assetId);
+  const { requestLiveView } = useRequestLiveView();
   const [selectedImage, setSelectedImage] = useState<BirdDetectionEvent | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
+  
+  // Live view state
+  const [isWatching, setIsWatching] = useState(false);
+  const [frameUrl, setFrameUrl] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [isOffline, setIsOffline] = useState(false);
+  const appState = useRef(AppState.currentState);
+  const intervalsRef = useRef<{ frameInterval: NodeJS.Timeout; leaseInterval: NodeJS.Timeout } | null>(null);
 
   const handleLoadMore = () => {
     setCurrentPage(prev => prev + 1);
   };
+
+  const startWatching = useCallback(async () => {
+    if (!assetId) return;
+    
+    const success = await requestLiveView(assetId, 2);
+    if (!success) {
+      setIsOffline(true);
+      return;
+    }
+
+    setIsWatching(true);
+    setIsOffline(false);
+    setFrameUrl(null);
+    setLastUpdated(null);
+
+    // Start frame polling (1s interval)
+    const frameInterval = setInterval(() => {
+      fetchLiveFrame();
+    }, 1000);
+
+    // Start lease renewal (60s interval)
+    const leaseInterval = setInterval(() => {
+      if (appState.current === 'active' && assetId) {
+        requestLiveView(assetId, 2);
+      }
+    }, 60000);
+
+    intervalsRef.current = { frameInterval, leaseInterval };
+  }, [assetId, requestLiveView]);
+
+  const stopWatching = useCallback(() => {
+    if (intervalsRef.current) {
+      clearInterval(intervalsRef.current.frameInterval);
+      clearInterval(intervalsRef.current.leaseInterval);
+      intervalsRef.current = null;
+    }
+
+    setIsWatching(false);
+    setFrameUrl(null);
+    setLastUpdated(null);
+    setIsOffline(false);
+  }, []);
+
+  const fetchLiveFrame = useCallback(() => {
+    if (!assetId) return;
+
+    try {
+      const { data } = supabase.storage
+        .from('poultry-images')
+        .getPublicUrl(`live_view_${assetId}.jpg`);
+
+      const urlWithCacheBust = `${data.publicUrl}?t=${Date.now()}`;
+
+      // Preload image to check if it loads successfully
+      Image.getSize(urlWithCacheBust, () => {
+        setFrameUrl(urlWithCacheBust);
+        setLastUpdated(new Date());
+        setIsOffline(false);
+      }, () => {
+        // Image failed to load
+        setLastUpdated(prev => {
+          if (prev && Date.now() - prev.getTime() > 10000) {
+            setIsOffline(true);
+            setIsWatching(false);
+          }
+          return prev;
+        });
+      });
+    } catch (e) {
+      console.error('Failed to fetch live frame:', e);
+    }
+  }, [assetId]);
+
+  // Handle app state changes
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      appState.current = nextAppState;
+
+      if (nextAppState !== 'active' && isWatching) {
+        stopWatching();
+      }
+    });
+
+    return () => subscription.remove();
+  }, [isWatching, stopWatching]);
+
+  // Cleanup intervals on unmount
+  useEffect(() => {
+    return () => {
+      if (intervalsRef.current) {
+        clearInterval(intervalsRef.current.frameInterval);
+        clearInterval(intervalsRef.current.leaseInterval);
+      }
+    };
+  }, []);
 
   const renderGroupHeader = (dateLabel: string) => (
     <View style={styles.dateHeader}>
@@ -101,6 +207,54 @@ export const CoopTimelineScreen: React.FC<CoopTimelineScreenProps> = ({ navigati
         <Text style={styles.title}>Timeline — {coopName}</Text>
         <View style={{ width: 24 }} />
       </View>
+
+      {/* Live View Section */}
+      {assetId && (
+        <View style={styles.liveViewSection}>
+          <Text style={styles.sectionTitle}>Live View</Text>
+          {!isWatching && !isOffline ? (
+            <PButton
+              title="Watch Feed"
+              onPress={startWatching}
+              style={styles.watchButton}
+            />
+          ) : isOffline ? (
+            <View style={styles.offlineContainer}>
+              <Ionicons name="wifi-outline" size={32} color={Colors.mutedSienna} />
+              <Text style={styles.offlineText}>Camera's offline — can't start a live view right now</Text>
+            </View>
+          ) : (
+            <View style={styles.liveViewContainer}>
+              <View style={styles.liveViewHeader}>
+                <View style={styles.liveBadge}>
+                  <View style={styles.liveDot} />
+                  <Text style={styles.liveBadgeText}>live</Text>
+                </View>
+                {lastUpdated && (
+                  <Text style={styles.liveUpdatedText}>
+                    updated {formatDistanceToNow(new Date(lastUpdated), { addSuffix: true })}
+                  </Text>
+                )}
+                <TouchableOpacity onPress={stopWatching} style={styles.stopButton}>
+                  <Ionicons name="close" size={20} color={Colors.charcoalInk} />
+                </TouchableOpacity>
+              </View>
+              {frameUrl ? (
+                <Image
+                  source={{ uri: frameUrl }}
+                  style={styles.liveFrame}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View style={styles.liveFramePlaceholder}>
+                  <ActivityIndicator color={Colors.primaryRust} />
+                  <Text style={styles.loadingText}>Loading feed...</Text>
+                </View>
+              )}
+            </View>
+          )}
+        </View>
+      )}
 
       {error && (
         <View style={styles.errorContainer}>
@@ -317,5 +471,92 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 50,
     right: 20,
+  },
+  liveViewSection: {
+    paddingHorizontal: Spacing.xl,
+    paddingBottom: Spacing.md,
+  },
+  sectionTitle: {
+    fontFamily: 'DMSans-Bold',
+    fontSize: Typography.fontSize.sm,
+    color: Colors.charcoalInk,
+    marginBottom: Spacing.sm,
+  },
+  watchButton: {
+    marginTop: Spacing.sm,
+  },
+  offlineContainer: {
+    alignItems: 'center',
+    paddingVertical: Spacing.lg,
+    backgroundColor: Colors.softAsh + '30',
+    borderRadius: Radius.md,
+  },
+  offlineText: {
+    fontFamily: 'DMSans-Regular',
+    fontSize: Typography.fontSize.sm,
+    color: Colors.mutedSienna,
+    marginTop: Spacing.sm,
+    textAlign: 'center',
+  },
+  liveViewContainer: {
+    backgroundColor: Colors.charcoalInk,
+    borderRadius: Radius.md,
+    overflow: 'hidden',
+  },
+  liveViewHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  liveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.dangerCrimson,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 2,
+    borderRadius: Radius.sm,
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#FFFFFF',
+    marginRight: Spacing.xs,
+  },
+  liveBadgeText: {
+    fontFamily: 'DMSans-Bold',
+    fontSize: 10,
+    color: '#FFFFFF',
+    textTransform: 'uppercase',
+  },
+  liveUpdatedText: {
+    fontFamily: 'DMSans-Regular',
+    fontSize: 10,
+    color: '#FFFFFF',
+    opacity: 0.8,
+  },
+  stopButton: {
+    padding: Spacing.xs,
+  },
+  liveFrame: {
+    width: '100%',
+    height: 200,
+    backgroundColor: Colors.charcoalInk,
+  },
+  liveFramePlaceholder: {
+    width: '100%',
+    height: 200,
+    backgroundColor: Colors.charcoalInk,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontFamily: 'DMSans-Regular',
+    fontSize: Typography.fontSize.sm,
+    color: '#FFFFFF',
+    marginTop: Spacing.sm,
   },
 });
