@@ -40,15 +40,15 @@ export const BirdProfileDetailScreen: React.FC<BirdProfileDetailScreenProps> = (
   const [deviceAddress, setDeviceAddress] = useState(profile?.deviceAddress || '');
   const [isEditingDevice, setIsEditingDevice] = useState(false);
 
-  // Device address validation regex: POU-XXXX-XXXX-XXXX (case insensitive)
-  const deviceAddressRegex = /^POU-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/i;
+  // Device address validation regex: 16 hex characters
+  const deviceAddressRegex = /^[a-f0-9]{16}$/i;
 
   const handleSaveDeviceAddress = async () => {
     if (!profile) return;
 
-    const trimmedAddress = deviceAddress.trim().toUpperCase();
+    const trimmedAddress = deviceAddress.trim().toLowerCase();
     if (trimmedAddress && !deviceAddressRegex.test(trimmedAddress)) {
-      Alert.alert('Error', 'Device address must be in format POU-XXXX-XXXX-XXXX');
+      Alert.alert('Error', 'Device address must be 16 hex characters (e.g., 989347d6c29e5e8b)');
       return;
     }
 
@@ -300,14 +300,14 @@ export const BirdProfileDetailScreen: React.FC<BirdProfileDetailScreenProps> = (
             {isEditingDevice ? (
               <View style={styles.deviceEditContainer}>
                 <PInput
-                  placeholder="POU-XXXX-XXXX-XXXX"
+                  placeholder="989347d6c29e5e8b"
                   value={deviceAddress}
-                  onChangeText={(text) => setDeviceAddress(text.toUpperCase())}
-                  autoCapitalize="characters"
+                  onChangeText={(text) => setDeviceAddress(text.toLowerCase())}
+                  autoCapitalize="none"
                   style={styles.deviceInput}
                 />
                 <Text style={styles.deviceHelperText}>
-                  Find this on the label inside the camera unit. Leave it blank and link it later if the hardware isn't installed yet.
+                  Enter the 16-character hex address from the device label. Leave it blank and link it later if the hardware isn't installed yet.
                 </Text>
                 <View style={styles.deviceActions}>
                   <TouchableOpacity 

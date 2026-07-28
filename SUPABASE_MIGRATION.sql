@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   animal_type TEXT NOT NULL CHECK (animal_type IN ('cattle', 'sheep', 'goat', 'horse', 'donkey', 'bird')),
   description TEXT,
   custom_fields JSONB DEFAULT '[]'::jsonb, -- Array of {id, label, fieldType, value}
+  device_address TEXT CHECK (device_address ~ '^[a-f0-9]{16}$'), -- 16-character hex address for IoT devices (e.g., 989347d6c29e5e8b)
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -116,6 +117,20 @@ ALTER TABLE animals ADD COLUMN IF NOT EXISTS profile_id UUID REFERENCES profiles
 
 -- Add photos column (array) to replace single image_url
 ALTER TABLE animals ADD COLUMN IF NOT EXISTS photos JSONB DEFAULT '[]'::jsonb;
+
+-- 5.5 UPDATE PROFILES TABLE FOR DEVICE ADDRESS
+-- Add device_address column if it doesn't exist, or update constraint if it does
+DO $$
+BEGIN
+  -- Check if column exists
+  IF NOT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'device_address') THEN
+    ALTER TABLE profiles ADD COLUMN device_address TEXT CHECK (device_address ~ '^[a-f0-9]{16}$');
+  ELSE
+    -- Column exists, drop and recreate constraint to ensure hex format
+    ALTER TABLE profiles DROP CONSTRAINT IF EXISTS profiles_device_address_check;
+    ALTER TABLE profiles ADD CONSTRAINT profiles_device_address_check CHECK (device_address ~ '^[a-f0-9]{16}$' OR device_address IS NULL);
+  END IF;
+END $$;
 
 -- 6. UPDATE CHAT MESSAGES TABLE
 -- Add missing columns for message type and read status
