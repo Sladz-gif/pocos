@@ -278,19 +278,19 @@ BEGIN
 
   -- Verify the coop belongs to the current user (check both profiles and bird_cages)
   IF EXISTS (SELECT 1 FROM profiles WHERE id = p_coop_id AND ranch_id IN (SELECT id FROM ranches WHERE owner_user_id = v_owner_id)) THEN
-    -- Check asset's owner
-    SELECT owner_user_id INTO v_asset_owner FROM assets WHERE asset_id = UPPER(p_device_address);
+    -- Check asset's owner (use lowercase for hex format)
+    SELECT owner_user_id INTO v_asset_owner FROM assets WHERE asset_id = LOWER(p_device_address);
     
     -- If asset is unclaimed or already belongs to user
     IF v_asset_owner IS NULL OR v_asset_owner = v_owner_id THEN
       -- Update asset's owner
       UPDATE assets 
       SET owner_user_id = v_owner_id, updated_at = NOW()
-      WHERE asset_id = UPPER(p_device_address);
+      WHERE asset_id = LOWER(p_device_address);
       
       -- Update coop's device address
       UPDATE profiles 
-      SET device_address = UPPER(p_device_address), updated_at = NOW()
+      SET device_address = LOWER(p_device_address), updated_at = NOW()
       WHERE id = p_coop_id;
       
       RETURN TRUE;
@@ -303,15 +303,15 @@ BEGIN
   -- Check bird_cages table if it exists
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'bird_cages') THEN
     IF EXISTS (SELECT 1 FROM bird_cages WHERE id = p_coop_id AND ranch_id IN (SELECT id FROM ranches WHERE owner_user_id = v_owner_id)) THEN
-      SELECT owner_user_id INTO v_asset_owner FROM assets WHERE asset_id = UPPER(p_device_address);
+      SELECT owner_user_id INTO v_asset_owner FROM assets WHERE asset_id = LOWER(p_device_address);
       
       IF v_asset_owner IS NULL OR v_asset_owner = v_owner_id THEN
         UPDATE assets 
         SET owner_user_id = v_owner_id, updated_at = NOW()
-        WHERE asset_id = UPPER(p_device_address);
+        WHERE asset_id = LOWER(p_device_address);
         
         UPDATE bird_cages 
-        SET device_address = UPPER(p_device_address), updated_at = NOW()
+        SET device_address = LOWER(p_device_address), updated_at = NOW()
         WHERE id = p_coop_id;
         
         RETURN TRUE;
@@ -340,11 +340,11 @@ BEGIN
     RETURN FALSE;
   END IF;
 
-  -- Verify the asset belongs to current user
-  IF EXISTS (SELECT 1 FROM assets WHERE asset_id = UPPER(p_asset_id) AND owner_user_id = v_owner_id) THEN
+  -- Verify the asset belongs to current user (use lowercase for hex format)
+  IF EXISTS (SELECT 1 FROM assets WHERE asset_id = LOWER(p_asset_id) AND owner_user_id = v_owner_id) THEN
     UPDATE assets 
     SET pending_test_snapshot = TRUE, updated_at = NOW()
-    WHERE asset_id = UPPER(p_asset_id);
+    WHERE asset_id = LOWER(p_asset_id);
     
     RETURN TRUE;
   END IF;
@@ -357,6 +357,33 @@ $$;
 -- 9. Add indexes for performance (use IF NOT EXISTS)
 CREATE INDEX IF NOT EXISTS idx_assets_owner ON assets(owner_user_id);
 CREATE INDEX IF NOT EXISTS idx_bird_detections_asset ON bird_detections(asset_id);
+CREATE INDEX IF NOT EXISTS idx_device_test_snapshots_asset ON device_test_snapshots(asset_id);
+
+
+-- 10. Add migration to ensure device addresses are lowercase and asset exists
+-- This ensures the Jetson device with hex address format works correctly
+DO $$
+BEGIN
+  -- Update any existing uppercase device addresses to lowercase
+  UPDATE assets 
+  SET asset_id = LOWER(asset_id), updated_at = NOW()
+  WHERE asset_id != LOWER(asset_id);
+  
+  UPDATE profiles 
+  SET device_address = LOWER(device_address), updated_at = NOW()
+  WHERE device_address != LOWER(device_address);
+  
+  UPDATE bird_cages 
+  SET device_address = LOWER(device_address), updated_at = NOW()
+  WHERE device_address != LOWER(device_address);
+END $$;
+
+
+-- 11. Create the test asset if it doesn't exist (for the Jetson device)
+-- This is for the specific device: 989347d6c29e5e8b
+INSERT INTO assets (asset_id, owner_user_id, status, created_at, updated_at)
+VALUES ('989347d6c29e5e8b', NULL, 'active', NOW(), NOW())
+ON CONFLICT (asset_id) DO NOTHING;
 CREATE INDEX IF NOT EXISTS idx_bird_detections_detected_at ON bird_detections(detected_at DESC);
 CREATE INDEX IF NOT EXISTS idx_test_snapshots_asset ON device_test_snapshots(asset_id);
 CREATE INDEX IF NOT EXISTS idx_test_snapshots_captured_at ON device_test_snapshots(captured_at DESC);
