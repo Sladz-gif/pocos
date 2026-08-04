@@ -1,14 +1,15 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, Image, Dimensions, RefreshControl, ActivityIndicator, AppState } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, Image, Dimensions, RefreshControl, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, Typography, Radius } from '../../constants';
 import { Ionicons } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { useCoopTimeline, useRequestLiveView } from '../../hooks/useCoops';
+import { useCoopTimeline } from '../../hooks/useCoops';
 import { PButton } from '../../components/ui';
+import { useLiveViewStore } from '../../store/liveViewStore';
+import { useLiveView } from '../../hooks/useLiveView';
 import type { BirdDetectionEvent } from '../../types/coop';
 import { format, formatDistanceToNow } from 'date-fns';
-import { supabase } from '../../config/supabase';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -24,113 +25,14 @@ export const CoopTimelineScreen: React.FC<CoopTimelineScreenProps> = ({ navigati
   const assetId = JETSON_DEVICE_ADDRESS; // Use hardcoded address instead of route param
   const coopName = route?.params?.coopName || 'Coop';
   const { groupedEntries, isLoading, error, refresh } = useCoopTimeline(assetId);
-  const { requestLiveView } = useRequestLiveView();
+  const { isWatching, frameUrl, lastUpdated, isOffline, isLoading: liveViewLoading } = useLiveViewStore();
+  const { start, stop, refresh: refreshLiveView } = useLiveView();
   const [selectedImage, setSelectedImage] = useState<BirdDetectionEvent | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
-  
-  // Live view state
-  const [isWatching, setIsWatching] = useState(false);
-  const [frameUrl, setFrameUrl] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [isOffline, setIsOffline] = useState(false);
-  const appState = useRef(AppState.currentState);
-  const intervalsRef = useRef<{ frameInterval: NodeJS.Timeout; leaseInterval: NodeJS.Timeout } | null>(null);
 
   const handleLoadMore = () => {
     setCurrentPage(prev => prev + 1);
   };
-
-  const startWatching = useCallback(async () => {
-    // Use hardcoded device address instead of requiring device linking
-    const success = await requestLiveView(JETSON_DEVICE_ADDRESS, 2);
-    if (!success) {
-      setIsOffline(true);
-      return;
-    }
-
-    setIsWatching(true);
-    setIsOffline(false);
-    setFrameUrl(null);
-    setLastUpdated(null);
-
-    // Start frame polling (1s interval)
-    const frameInterval = setInterval(() => {
-      fetchLiveFrame();
-    }, 1000);
-
-    // Start lease renewal (60s interval)
-    const leaseInterval = setInterval(() => {
-      if (appState.current === 'active') {
-        requestLiveView(JETSON_DEVICE_ADDRESS, 2);
-      }
-    }, 60000);
-
-    intervalsRef.current = { frameInterval, leaseInterval };
-  }, [requestLiveView]);
-
-  const stopWatching = useCallback(() => {
-    if (intervalsRef.current) {
-      clearInterval(intervalsRef.current.frameInterval);
-      clearInterval(intervalsRef.current.leaseInterval);
-      intervalsRef.current = null;
-    }
-
-    setIsWatching(false);
-    setFrameUrl(null);
-    setLastUpdated(null);
-    setIsOffline(false);
-  }, []);
-
-  const fetchLiveFrame = useCallback(() => {
-    try {
-      const { data } = supabase.storage
-        .from('poultry-images')
-        .getPublicUrl(`live_view_${JETSON_DEVICE_ADDRESS}.jpg`);
-
-      const urlWithCacheBust = `${data.publicUrl}?t=${Date.now()}`;
-
-      // Preload image to check if it loads successfully
-      Image.getSize(urlWithCacheBust, () => {
-        setFrameUrl(urlWithCacheBust);
-        setLastUpdated(new Date());
-        setIsOffline(false);
-      }, () => {
-        // Image failed to load
-        setLastUpdated(prev => {
-          if (prev && Date.now() - prev.getTime() > 10000) {
-            setIsOffline(true);
-            setIsWatching(false);
-          }
-          return prev;
-        });
-      });
-    } catch (e) {
-      console.error('Failed to fetch live frame:', e);
-    }
-  }, []);
-
-  // Handle app state changes
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', nextAppState => {
-      appState.current = nextAppState;
-
-      if (nextAppState !== 'active' && isWatching) {
-        stopWatching();
-      }
-    });
-
-    return () => subscription.remove();
-  }, [isWatching, stopWatching]);
-
-  // Cleanup intervals on unmount
-  useEffect(() => {
-    return () => {
-      if (intervalsRef.current) {
-        clearInterval(intervalsRef.current.frameInterval);
-        clearInterval(intervalsRef.current.leaseInterval);
-      }
-    };
-  }, []);
 
   const renderGroupHeader = (dateLabel: string) => (
     <View style={styles.dateHeader}>
@@ -208,14 +110,13 @@ export const CoopTimelineScreen: React.FC<CoopTimelineScreenProps> = ({ navigati
         <View style={{ width: 24 }} />
       </View>
 
-      {/* Live View Section */}
-      {assetId && (
+        {/* Live View Section */}
         <View style={styles.liveViewSection}>
           <Text style={styles.sectionTitle}>Live View</Text>
           {!isWatching && !isOffline ? (
             <PButton
               title="Watch Feed"
-              onPress={startWatching}
+              onPress={start}
               style={styles.watchButton}
             />
           ) : isOffline ? (
@@ -235,7 +136,7 @@ export const CoopTimelineScreen: React.FC<CoopTimelineScreenProps> = ({ navigati
                     updated {formatDistanceToNow(new Date(lastUpdated), { addSuffix: true })}
                   </Text>
                 )}
-                <TouchableOpacity onPress={stopWatching} style={styles.stopButton}>
+                <TouchableOpacity onPress={stop} style={styles.stopButton}>
                   <Ionicons name="close" size={20} color={Colors.charcoalInk} />
                 </TouchableOpacity>
               </View>
@@ -254,7 +155,6 @@ export const CoopTimelineScreen: React.FC<CoopTimelineScreenProps> = ({ navigati
             </View>
           )}
         </View>
-      )}
 
       {error && (
         <View style={styles.errorContainer}>

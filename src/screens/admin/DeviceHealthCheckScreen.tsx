@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, RefreshControl, Image, ActivityIndicator, AppState } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, RefreshControl, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, Typography, Radius } from '../../constants';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,12 +10,10 @@ import { supabase } from '../../config/supabase';
 import { useJetsonStore } from '../../store/jetsonStore';
 import { useProfileStore } from '../../store/profileStore';
 import { useAuthStore } from '../../store/authStore';
+import { useLiveViewStore } from '../../store/liveViewStore';
+import { useLiveView } from '../../hooks/useLiveView';
 import { Asset, DeviceTestSnapshot } from '../../types';
 import { format, isWithinInterval, subHours, formatDistanceToNow } from 'date-fns';
-import { useRequestLiveView } from '../../hooks/useCoops';
-
-// Hardcoded device address for live view (Jetson Nano)
-const JETSON_DEVICE_ADDRESS = '989347d6c29e5e8b';
 
 type DeviceHealthCheckScreenProps = {
   navigation: StackNavigationProp<AdminStackParamList & AuthStackParamList, any>;
@@ -26,25 +24,15 @@ interface DeviceWithCoop extends Asset {
   latestSnapshot?: DeviceTestSnapshot;
 }
 
-interface LiveViewState {
-  isWatching: boolean;
-  frameUrl: string | null;
-  lastUpdated: Date | null;
-  isOffline: boolean;
-  watchingSince: Date | null;
-}
-
 export const DeviceHealthCheckScreen: React.FC<DeviceHealthCheckScreenProps> = ({ navigation }) => {
   const { userRole } = useAuthStore();
   const { assets, fetchAssets, fetchTestSnapshots, requestTestSnapshot, error, clearError } = useJetsonStore();
   const { profiles } = useProfileStore();
-  const { requestLiveView } = useRequestLiveView();
+  const { isWatching, frameUrl, lastUpdated, isOffline, isLoading: liveViewLoading, error: liveViewError } = useLiveViewStore();
+  const { start, stop, refresh } = useLiveView();
   const [refreshing, setRefreshing] = useState(false);
   const [devicesWithCoops, setDevicesWithCoops] = useState<DeviceWithCoop[]>([]);
   const [hasSession, setHasSession] = useState<boolean | null>(null);
-  const [liveViewState, setLiveViewState] = useState<Record<string, LiveViewState>>({});
-  const appState = useRef(AppState.currentState);
-  const intervalsRef = useRef<Record<string, { frameInterval: NodeJS.Timeout; leaseInterval: NodeJS.Timeout }>>({});
   const isAuthorizedRole = userRole === 'super_admin' || userRole === 'ranch_owner' || userRole === 'staff' || userRole === 'store_manager';
 
   useEffect(() => {
@@ -117,35 +105,6 @@ export const DeviceHealthCheckScreen: React.FC<DeviceHealthCheckScreenProps> = (
     }
   }, [hasSession, isAuthorizedRole, loadData]);
 
-  // Handle app state changes (background/foreground)
-  useEffect(() => {
-    const subscription = AppState.addEventListener('change', nextAppState => {
-      appState.current = nextAppState;
-
-      // Stop watching when app goes to background
-      if (nextAppState !== 'active') {
-        Object.keys(liveViewState).forEach(assetId => {
-          if (liveViewState[assetId]?.isWatching) {
-            stopWatching(assetId);
-          }
-        });
-      }
-    });
-
-    return () => subscription.remove();
-  }, [liveViewState]);
-
-  // Cleanup intervals on unmount
-  useEffect(() => {
-    return () => {
-      Object.values(intervalsRef.current).forEach(intervals => {
-        clearInterval(intervals.frameInterval);
-        clearInterval(intervals.leaseInterval);
-      });
-      intervalsRef.current = {};
-    };
-  }, []);
-
   const handleRequestSnapshot = async (assetId: string) => {
     try {
       const success = await requestTestSnapshot(assetId);
@@ -159,102 +118,6 @@ export const DeviceHealthCheckScreen: React.FC<DeviceHealthCheckScreenProps> = (
     }
   };
 
-  const startWatching = useCallback(async () => {
-    // Use hardcoded device address instead of requiring device linking
-    const success = await requestLiveView(JETSON_DEVICE_ADDRESS, 2);
-    if (!success) {
-      Alert.alert('Error', 'Failed to start live view');
-      return;
-    }
-
-    setLiveViewState(prev => ({
-      ...prev,
-      [JETSON_DEVICE_ADDRESS]: {
-        isWatching: true,
-        frameUrl: null,
-        lastUpdated: null,
-        isOffline: false,
-        watchingSince: new Date(),
-      },
-    }));
-
-    // Start frame polling (1s interval)
-    const frameInterval = setInterval(() => {
-      fetchLiveFrame(JETSON_DEVICE_ADDRESS);
-    }, 1000);
-
-    // Start lease renewal (60s interval)
-    const leaseInterval = setInterval(() => {
-      if (appState.current === 'active') {
-        requestLiveView(JETSON_DEVICE_ADDRESS, 2);
-      }
-    }, 60000);
-
-    // Store intervals in ref for cleanup
-    intervalsRef.current[JETSON_DEVICE_ADDRESS] = { frameInterval, leaseInterval };
-  }, [requestLiveView, appState]);
-
-  const stopWatching = useCallback(() => {
-    const intervals = intervalsRef.current[JETSON_DEVICE_ADDRESS];
-    if (intervals) {
-      clearInterval(intervals.frameInterval);
-      clearInterval(intervals.leaseInterval);
-      delete intervalsRef.current[JETSON_DEVICE_ADDRESS];
-    }
-
-    setLiveViewState(prev => ({
-      ...prev,
-      [JETSON_DEVICE_ADDRESS]: {
-        isWatching: false,
-        frameUrl: null,
-        lastUpdated: null,
-        isOffline: false,
-        watchingSince: null,
-      },
-    }));
-  }, []);
-
-  const fetchLiveFrame = useCallback(async () => {
-    try {
-      const { data } = supabase.storage
-        .from('poultry-images')
-        .getPublicUrl(`live_view_${JETSON_DEVICE_ADDRESS}.jpg`);
-
-      const urlWithCacheBust = `${data.publicUrl}?t=${Date.now()}`;
-
-      // Preload image to check if it loads successfully
-      Image.getSize(urlWithCacheBust, () => {
-        setLiveViewState(prev => ({
-          ...prev,
-          [JETSON_DEVICE_ADDRESS]: {
-            ...prev[JETSON_DEVICE_ADDRESS],
-            frameUrl: urlWithCacheBust,
-            lastUpdated: new Date(),
-            isOffline: false,
-          },
-        }));
-      }, () => {
-        // Image failed to load
-        setLiveViewState(prev => {
-          const state = prev[JETSON_DEVICE_ADDRESS];
-          if (state?.isWatching && state.lastUpdated && Date.now() - state.lastUpdated.getTime() > 10000) {
-            return {
-              ...prev,
-              [JETSON_DEVICE_ADDRESS]: {
-                ...prev[JETSON_DEVICE_ADDRESS],
-                isOffline: true,
-                isWatching: false,
-              },
-            };
-          }
-          return prev;
-        });
-      });
-    } catch (e) {
-      console.error('Failed to fetch live frame:', e);
-    }
-  }, []);
-
   const isOnline = (asset: Asset) => {
     if (!asset.last_seen_at) return false;
     const now = new Date();
@@ -264,7 +127,6 @@ export const DeviceHealthCheckScreen: React.FC<DeviceHealthCheckScreenProps> = (
 
   const renderDeviceItem = ({ item }: { item: DeviceWithCoop }) => {
     const online = isOnline(item);
-    const liveState = liveViewState[JETSON_DEVICE_ADDRESS];
 
     return (
       <PCard style={styles.deviceCard}>
@@ -283,16 +145,16 @@ export const DeviceHealthCheckScreen: React.FC<DeviceHealthCheckScreenProps> = (
           </Text>
         </View>
 
-        {/* Live View Section - uses hardcoded device address */}
+        {/* Live View Section - uses service-based approach */}
         <View style={styles.liveViewSection}>
           <Text style={styles.sectionTitle}>Live View</Text>
-          {!liveState?.isWatching && !liveState?.isOffline ? (
+          {!isWatching && !isOffline ? (
             <PButton
               title="Watch Feed"
-              onPress={startWatching}
+              onPress={start}
               style={styles.watchButton}
             />
-          ) : liveState?.isOffline ? (
+          ) : isOffline ? (
             <View style={styles.offlineContainer}>
               <Ionicons name="wifi-outline" size={32} color={Colors.mutedSienna} />
               <Text style={styles.offlineText}>Camera's offline — can't start a live view right now</Text>
@@ -304,18 +166,18 @@ export const DeviceHealthCheckScreen: React.FC<DeviceHealthCheckScreenProps> = (
                   <View style={styles.liveDot} />
                   <Text style={styles.liveBadgeText}>live</Text>
                 </View>
-                {liveState?.lastUpdated && (
+                {lastUpdated && (
                   <Text style={styles.liveUpdatedText}>
-                    updated {formatDistanceToNow(new Date(liveState.lastUpdated), { addSuffix: true })}
+                    updated {formatDistanceToNow(new Date(lastUpdated), { addSuffix: true })}
                   </Text>
                 )}
-                <TouchableOpacity onPress={stopWatching} style={styles.stopButton}>
+                <TouchableOpacity onPress={stop} style={styles.stopButton}>
                   <Ionicons name="close" size={20} color={Colors.charcoalInk} />
                 </TouchableOpacity>
               </View>
-              {liveState?.frameUrl ? (
+              {frameUrl ? (
                 <Image
-                  source={{ uri: liveState.frameUrl }}
+                  source={{ uri: frameUrl }}
                   style={styles.liveFrame}
                   resizeMode="cover"
                 />
