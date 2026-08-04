@@ -98,24 +98,19 @@ class LiveViewService {
 
       const urlWithCacheBust = `${data.publicUrl}?t=${Date.now()}`;
 
-      // Preload image to check if it loads successfully
-      const { Image } = require('react-native');
-      Image.getSize(urlWithCacheBust, () => {
-        const store = useLiveViewStore.getState();
-        store.setFrameUrl(urlWithCacheBust);
-        store.setLastUpdated(new Date());
-        store.setIsOffline(false);
-      }, () => {
-        // Image failed to load
-        const store = useLiveViewStore.getState();
-        const lastUpdated = store.lastUpdated;
-        if (lastUpdated && Date.now() - lastUpdated.getTime() > 10000) {
-          store.setIsOffline(true);
-          store.setIsWatching(false);
-        }
-      });
+      // Update store with new URL - component will handle image loading
+      const store = useLiveViewStore.getState();
+      store.setFrameUrl(urlWithCacheBust);
+      store.setLastUpdated(new Date());
+      store.setIsOffline(false);
     } catch (e) {
       console.error('Failed to fetch live frame:', e);
+      const store = useLiveViewStore.getState();
+      const lastUpdated = store.lastUpdated;
+      if (lastUpdated && Date.now() - lastUpdated.getTime() > 10000) {
+        store.setIsOffline(true);
+        store.setIsWatching(false);
+      }
     }
   }
 
