@@ -14,6 +14,9 @@ import { Asset, DeviceTestSnapshot } from '../../types';
 import { format, isWithinInterval, subHours, formatDistanceToNow } from 'date-fns';
 import { useRequestLiveView } from '../../hooks/useCoops';
 
+// Hardcoded device address for live view (Jetson Nano)
+const JETSON_DEVICE_ADDRESS = '989347d6c29e5e8b';
+
 type DeviceHealthCheckScreenProps = {
   navigation: StackNavigationProp<AdminStackParamList & AuthStackParamList, any>;
 };
@@ -156,8 +159,9 @@ export const DeviceHealthCheckScreen: React.FC<DeviceHealthCheckScreenProps> = (
     }
   };
 
-  const startWatching = useCallback(async (assetId: string) => {
-    const success = await requestLiveView(assetId, 2);
+  const startWatching = useCallback(async () => {
+    // Use hardcoded device address instead of requiring device linking
+    const success = await requestLiveView(JETSON_DEVICE_ADDRESS, 2);
     if (!success) {
       Alert.alert('Error', 'Failed to start live view');
       return;
@@ -165,7 +169,7 @@ export const DeviceHealthCheckScreen: React.FC<DeviceHealthCheckScreenProps> = (
 
     setLiveViewState(prev => ({
       ...prev,
-      [assetId]: {
+      [JETSON_DEVICE_ADDRESS]: {
         isWatching: true,
         frameUrl: null,
         lastUpdated: null,
@@ -176,31 +180,31 @@ export const DeviceHealthCheckScreen: React.FC<DeviceHealthCheckScreenProps> = (
 
     // Start frame polling (1s interval)
     const frameInterval = setInterval(() => {
-      fetchLiveFrame(assetId);
+      fetchLiveFrame(JETSON_DEVICE_ADDRESS);
     }, 1000);
 
     // Start lease renewal (60s interval)
     const leaseInterval = setInterval(() => {
       if (appState.current === 'active') {
-        requestLiveView(assetId, 2);
+        requestLiveView(JETSON_DEVICE_ADDRESS, 2);
       }
     }, 60000);
 
     // Store intervals in ref for cleanup
-    intervalsRef.current[assetId] = { frameInterval, leaseInterval };
+    intervalsRef.current[JETSON_DEVICE_ADDRESS] = { frameInterval, leaseInterval };
   }, [requestLiveView, appState]);
 
-  const stopWatching = useCallback((assetId: string) => {
-    const intervals = intervalsRef.current[assetId];
+  const stopWatching = useCallback(() => {
+    const intervals = intervalsRef.current[JETSON_DEVICE_ADDRESS];
     if (intervals) {
       clearInterval(intervals.frameInterval);
       clearInterval(intervals.leaseInterval);
-      delete intervalsRef.current[assetId];
+      delete intervalsRef.current[JETSON_DEVICE_ADDRESS];
     }
 
     setLiveViewState(prev => ({
       ...prev,
-      [assetId]: {
+      [JETSON_DEVICE_ADDRESS]: {
         isWatching: false,
         frameUrl: null,
         lastUpdated: null,
@@ -210,11 +214,11 @@ export const DeviceHealthCheckScreen: React.FC<DeviceHealthCheckScreenProps> = (
     }));
   }, []);
 
-  const fetchLiveFrame = useCallback(async (assetId: string) => {
+  const fetchLiveFrame = useCallback(async () => {
     try {
       const { data } = supabase.storage
         .from('poultry-images')
-        .getPublicUrl(`live_view_${assetId}.jpg`);
+        .getPublicUrl(`live_view_${JETSON_DEVICE_ADDRESS}.jpg`);
 
       const urlWithCacheBust = `${data.publicUrl}?t=${Date.now()}`;
 
@@ -222,8 +226,8 @@ export const DeviceHealthCheckScreen: React.FC<DeviceHealthCheckScreenProps> = (
       Image.getSize(urlWithCacheBust, () => {
         setLiveViewState(prev => ({
           ...prev,
-          [assetId]: {
-            ...prev[assetId],
+          [JETSON_DEVICE_ADDRESS]: {
+            ...prev[JETSON_DEVICE_ADDRESS],
             frameUrl: urlWithCacheBust,
             lastUpdated: new Date(),
             isOffline: false,
@@ -232,12 +236,12 @@ export const DeviceHealthCheckScreen: React.FC<DeviceHealthCheckScreenProps> = (
       }, () => {
         // Image failed to load
         setLiveViewState(prev => {
-          const state = prev[assetId];
+          const state = prev[JETSON_DEVICE_ADDRESS];
           if (state?.isWatching && state.lastUpdated && Date.now() - state.lastUpdated.getTime() > 10000) {
             return {
               ...prev,
-              [assetId]: {
-                ...prev[assetId],
+              [JETSON_DEVICE_ADDRESS]: {
+                ...prev[JETSON_DEVICE_ADDRESS],
                 isOffline: true,
                 isWatching: false,
               },
@@ -260,7 +264,7 @@ export const DeviceHealthCheckScreen: React.FC<DeviceHealthCheckScreenProps> = (
 
   const renderDeviceItem = ({ item }: { item: DeviceWithCoop }) => {
     const online = isOnline(item);
-    const liveState = liveViewState[item.asset_id];
+    const liveState = liveViewState[JETSON_DEVICE_ADDRESS];
 
     return (
       <PCard style={styles.deviceCard}>
@@ -279,13 +283,13 @@ export const DeviceHealthCheckScreen: React.FC<DeviceHealthCheckScreenProps> = (
           </Text>
         </View>
 
-        {/* Live View Section */}
+        {/* Live View Section - uses hardcoded device address */}
         <View style={styles.liveViewSection}>
           <Text style={styles.sectionTitle}>Live View</Text>
           {!liveState?.isWatching && !liveState?.isOffline ? (
             <PButton
               title="Watch Feed"
-              onPress={() => startWatching(item.asset_id)}
+              onPress={startWatching}
               style={styles.watchButton}
             />
           ) : liveState?.isOffline ? (
@@ -305,7 +309,7 @@ export const DeviceHealthCheckScreen: React.FC<DeviceHealthCheckScreenProps> = (
                     updated {formatDistanceToNow(new Date(liveState.lastUpdated), { addSuffix: true })}
                   </Text>
                 )}
-                <TouchableOpacity onPress={() => stopWatching(item.asset_id)} style={styles.stopButton}>
+                <TouchableOpacity onPress={stopWatching} style={styles.stopButton}>
                   <Ionicons name="close" size={20} color={Colors.charcoalInk} />
                 </TouchableOpacity>
               </View>

@@ -15,6 +15,9 @@ import { BirdDetection } from '../../types';
 
 const { width: screenWidth } = Dimensions.get('window');
 
+// Hardcoded device address for timeline (Jetson Nano)
+const JETSON_DEVICE_ADDRESS = '989347d6c29e5e8b';
+
 type BirdCountHistoryScreenProps = {
   navigation: StackNavigationProp<HerdStackParamList, 'BirdCountHistory'>;
   route?: { params?: { profileId?: string } };
@@ -37,7 +40,7 @@ export const BirdCountHistoryScreen: React.FC<BirdCountHistoryScreenProps> = ({ 
     ? profiles.find(p => p.id === route.params.profileId)
     : null;
   
-  const assetId = profile?.deviceAddress;
+  const assetId = JETSON_DEVICE_ADDRESS; // Use hardcoded address instead of profile.deviceAddress
 
   // Fetch bird detections when timeline tab is active and we have an assetId
   useEffect(() => {

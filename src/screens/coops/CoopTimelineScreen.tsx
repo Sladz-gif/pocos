@@ -12,13 +12,16 @@ import { supabase } from '../../config/supabase';
 
 const { width: screenWidth } = Dimensions.get('window');
 
+// Hardcoded device address for live view and timeline (Jetson Nano)
+const JETSON_DEVICE_ADDRESS = '989347d6c29e5e8b';
+
 type CoopTimelineScreenProps = {
   navigation: StackNavigationProp<any, any>;
   route?: { params?: { profileId?: string; deviceAddress?: string; coopName?: string } };
 };
 
 export const CoopTimelineScreen: React.FC<CoopTimelineScreenProps> = ({ navigation, route }) => {
-  const assetId = route?.params?.deviceAddress;
+  const assetId = JETSON_DEVICE_ADDRESS; // Use hardcoded address instead of route param
   const coopName = route?.params?.coopName || 'Coop';
   const { groupedEntries, isLoading, error, refresh } = useCoopTimeline(assetId);
   const { requestLiveView } = useRequestLiveView();
@@ -38,9 +41,8 @@ export const CoopTimelineScreen: React.FC<CoopTimelineScreenProps> = ({ navigati
   };
 
   const startWatching = useCallback(async () => {
-    if (!assetId) return;
-    
-    const success = await requestLiveView(assetId, 2);
+    // Use hardcoded device address instead of requiring device linking
+    const success = await requestLiveView(JETSON_DEVICE_ADDRESS, 2);
     if (!success) {
       setIsOffline(true);
       return;
@@ -58,13 +60,13 @@ export const CoopTimelineScreen: React.FC<CoopTimelineScreenProps> = ({ navigati
 
     // Start lease renewal (60s interval)
     const leaseInterval = setInterval(() => {
-      if (appState.current === 'active' && assetId) {
-        requestLiveView(assetId, 2);
+      if (appState.current === 'active') {
+        requestLiveView(JETSON_DEVICE_ADDRESS, 2);
       }
     }, 60000);
 
     intervalsRef.current = { frameInterval, leaseInterval };
-  }, [assetId, requestLiveView]);
+  }, [requestLiveView]);
 
   const stopWatching = useCallback(() => {
     if (intervalsRef.current) {
@@ -80,12 +82,10 @@ export const CoopTimelineScreen: React.FC<CoopTimelineScreenProps> = ({ navigati
   }, []);
 
   const fetchLiveFrame = useCallback(() => {
-    if (!assetId) return;
-
     try {
       const { data } = supabase.storage
         .from('poultry-images')
-        .getPublicUrl(`live_view_${assetId}.jpg`);
+        .getPublicUrl(`live_view_${JETSON_DEVICE_ADDRESS}.jpg`);
 
       const urlWithCacheBust = `${data.publicUrl}?t=${Date.now()}`;
 
@@ -107,7 +107,7 @@ export const CoopTimelineScreen: React.FC<CoopTimelineScreenProps> = ({ navigati
     } catch (e) {
       console.error('Failed to fetch live frame:', e);
     }
-  }, [assetId]);
+  }, []);
 
   // Handle app state changes
   useEffect(() => {

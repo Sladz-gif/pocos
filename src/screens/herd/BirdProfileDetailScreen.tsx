@@ -7,10 +7,12 @@ import { PCard, PButton, PInput, PDeleteModal } from '../../components/ui';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { HerdStackParamList } from '../../navigation/types';
 import { useProfileStore } from '../../store/profileStore';
-import { useJetsonStore } from '../../store/jetsonStore';
 import { v4 as uuidv4 } from 'uuid';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { format } from 'date-fns';
+
+// Hardcoded device address for Jetson Nano
+const JETSON_DEVICE_ADDRESS = '989347d6c29e5e8b';
 
 type BirdProfileDetailScreenProps = {
   navigation: StackNavigationProp<HerdStackParamList, 'BirdProfileDetail'>;
@@ -28,7 +30,6 @@ interface CageFormData {
 
 export const BirdProfileDetailScreen: React.FC<BirdProfileDetailScreenProps> = ({ navigation, route }) => {
   const { profiles, updateProfile } = useProfileStore();
-  const { linkCoopDevice, clearError } = useJetsonStore();
   const profile = profiles.find(p => p.id === route.params.id);
   
   const [cages, setCages] = useState<CageFormData[]>([]);
@@ -37,33 +38,6 @@ export const BirdProfileDetailScreen: React.FC<BirdProfileDetailScreenProps> = (
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [cageToDelete, setCageToDelete] = useState<string | null>(null);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  const [deviceAddress, setDeviceAddress] = useState(profile?.deviceAddress || '');
-  const [isEditingDevice, setIsEditingDevice] = useState(false);
-
-  // Device address validation regex: 16 hex characters
-  const deviceAddressRegex = /^[a-f0-9]{16}$/i;
-
-  const handleSaveDeviceAddress = async () => {
-    if (!profile) return;
-
-    const trimmedAddress = deviceAddress.trim().toLowerCase();
-    if (trimmedAddress && !deviceAddressRegex.test(trimmedAddress)) {
-      Alert.alert('Error', 'Device address must be 16 hex characters (e.g., 989347d6c29e5e8b)');
-      return;
-    }
-
-    if (trimmedAddress) {
-      const success = await linkCoopDevice(profile.id, trimmedAddress);
-      if (!success) {
-        Alert.alert('Error', 'Failed to link device. It may be already linked to another ranch.');
-        return;
-      }
-    }
-
-    await updateProfile(profile.id, { deviceAddress: trimmedAddress || undefined });
-    setIsEditingDevice(false);
-    clearError();
-  };
 
   const handleAddCage = () => {
     const newCage: CageFormData = {
@@ -286,52 +260,13 @@ export const BirdProfileDetailScreen: React.FC<BirdProfileDetailScreenProps> = (
             </Text>
           </View>
           
-          {/* Device Address Section */}
           <View style={styles.deviceSection}>
             <View style={styles.deviceHeader}>
               <Text style={styles.infoLabel}>Device Address:</Text>
-              {!isEditingDevice && (
-                <TouchableOpacity onPress={() => setIsEditingDevice(true)}>
-                  <Ionicons name="create-outline" size={18} color={Colors.primaryRust} />
-                </TouchableOpacity>
-              )}
             </View>
-            
-            {isEditingDevice ? (
-              <View style={styles.deviceEditContainer}>
-                <PInput
-                  placeholder="989347d6c29e5e8b"
-                  value={deviceAddress}
-                  onChangeText={(text) => setDeviceAddress(text.toLowerCase())}
-                  autoCapitalize="none"
-                  style={styles.deviceInput}
-                />
-                <Text style={styles.deviceHelperText}>
-                  Enter the 16-character hex address from the device label. Leave it blank and link it later if the hardware isn't installed yet.
-                </Text>
-                <View style={styles.deviceActions}>
-                  <TouchableOpacity 
-                    onPress={() => {
-                      setDeviceAddress(profile?.deviceAddress || '');
-                      setIsEditingDevice(false);
-                    }}
-                    style={styles.deviceCancelButton}
-                  >
-                    <Text style={styles.deviceCancelText}>Cancel</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    onPress={handleSaveDeviceAddress}
-                    style={styles.deviceSaveButton}
-                  >
-                    <Text style={styles.deviceSaveText}>Save</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ) : (
-              <Text style={styles.deviceAddressText}>
-                {profile?.deviceAddress || 'Not linked'}
-              </Text>
-            )}
+            <Text style={styles.deviceAddressText}>
+              {JETSON_DEVICE_ADDRESS} (Jetson Nano)
+            </Text>
           </View>
         </View>
 
