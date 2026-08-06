@@ -263,9 +263,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.md,
+    width: '100%',
   },
   detectionThumbContainer: {
-    width: (screenWidth - Spacing.xl * 2 - Spacing.md) / 3,
+    width: (screenWidth - Spacing.xl * 2 - Spacing.md * 2) / 3,
     alignItems: 'center',
   },
   detectionThumb: {
