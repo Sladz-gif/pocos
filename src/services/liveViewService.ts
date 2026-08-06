@@ -19,11 +19,9 @@ class LiveViewService {
     store.setError(null);
 
     try {
-      // 1. Request live view lease
+      // 1. Request live view lease (function only accepts asset_id)
       const { data, error } = await supabase.rpc('request_live_view', {
         p_asset_id: JETSON_DEVICE_ADDRESS,
-        p_lease_minutes: 2,
-        p_device_secret: TEMP_DEVICE_SECRET,
       });
 
       if (error) throw error;
@@ -75,8 +73,6 @@ class LiveViewService {
       try {
         const { data, error } = await supabase.rpc('request_live_view', {
           p_asset_id: JETSON_DEVICE_ADDRESS,
-          p_lease_minutes: 2,
-          p_device_secret: TEMP_DEVICE_SECRET,
         });
 
         if (error) {
