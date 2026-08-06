@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../config/supabase';
 import type { BirdDetectionEvent, CoopTimelineEntry } from '../types/coop';
-import { format, isSameDay, isYesterday } from 'date-fns';
+import { format, isSameDay, isYesterday, startOfMinute, differenceInMinutes } from 'date-fns';
 import { TEMP_DEVICE_SECRET } from '../config/liveView';
 
 const PAGE_SIZE = 30;
@@ -22,6 +22,26 @@ const formatDateLabel = (date: Date): string => {
   if (isSameDay(date, new Date())) return 'Today';
   if (isYesterday(date)) return 'Yesterday';
   return format(date, 'MMM d, yyyy');
+};
+
+// Group detections by 15-minute intervals
+const groupBy15MinInterval = (detections: BirdDetectionEvent[]): Map<string, BirdDetectionEvent[]> => {
+  const groups = new Map<string, BirdDetectionEvent[]>();
+  detections.forEach(detection => {
+    const date = new Date(detection.detectedAt);
+    const intervalStart = startOfMinute(date);
+    const intervalKey = intervalStart.toISOString();
+    if (!groups.has(intervalKey)) groups.set(intervalKey, []);
+    groups.get(intervalKey)!.push(detection);
+  });
+  return groups;
+};
+
+// Get the current 15-minute interval's count
+const getCurrentIntervalCount = (detections: BirdDetectionEvent[]): number | null => {
+  if (detections.length === 0) return null;
+  const latestDetection = detections[0];
+  return latestDetection.intervalCount ?? null;
 };
 
 export const useCoopTimeline = (assetId?: string, page = 0) => {
@@ -84,9 +104,12 @@ export const useCoopTimeline = (assetId?: string, page = 0) => {
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) as any;
   }, [detections]);
 
+  const currentIntervalCount = useMemo(() => getCurrentIntervalCount(detections), [detections]);
+
   return {
     detections,
     groupedEntries,
+    currentIntervalCount,
     isLoading,
     error,
     pageSize: PAGE_SIZE,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, Image, Dimensions, RefreshControl, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, Image, Dimensions, RefreshControl, ActivityIndicator, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, Typography, Radius } from '../../constants';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,6 +10,7 @@ import { useLiveViewStore } from '../../store/liveViewStore';
 import { useLiveView } from '../../hooks/useLiveView';
 import type { BirdDetectionEvent } from '../../types/coop';
 import { format, formatDistanceToNow } from 'date-fns';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -24,14 +25,26 @@ type CoopTimelineScreenProps = {
 export const CoopTimelineScreen: React.FC<CoopTimelineScreenProps> = ({ navigation, route }) => {
   const assetId = JETSON_DEVICE_ADDRESS; // Use hardcoded address instead of route param
   const coopName = route?.params?.coopName || 'Coop';
-  const { groupedEntries, isLoading, error, refresh } = useCoopTimeline(assetId);
+  const { groupedEntries, currentIntervalCount, isLoading, error, refresh } = useCoopTimeline(assetId);
   const { isWatching, frameUrl, lastUpdated, isOffline, isLoading: liveViewLoading } = useLiveViewStore();
   const { start, stop, refresh: refreshLiveView } = useLiveView();
   const [selectedImage, setSelectedImage] = useState<BirdDetectionEvent | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
+  const [showDetails, setShowDetails] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   const handleLoadMore = () => {
     setCurrentPage(prev => prev + 1);
+  };
+
+  const handleDateChange = (event: any, date?: Date) => {
+    if (date) {
+      setSelectedDate(date);
+      setShowCalendar(false);
+      // Filter detections by selected date
+      // This would require updating the hook to accept a date filter
+    }
   };
 
   const renderGroupHeader = (dateLabel: string) => (
@@ -162,18 +175,72 @@ export const CoopTimelineScreen: React.FC<CoopTimelineScreenProps> = ({ navigati
         </View>
       )}
 
-      <FlatList
-        data={groupedEntries}
-        renderItem={({ item }) => renderGroup(item as any)}
-        keyExtractor={item => item.date}
-        contentContainerStyle={styles.listContent}
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.5}
-        refreshControl={
-          <RefreshControl refreshing={isLoading} onRefresh={refresh} colors={[Colors.primaryRust]} />
-        }
-        ListEmptyComponent={renderEmptyState()}
-      />
+      {/* Current Count Section */}
+      <View style={styles.currentCountSection}>
+        <Text style={styles.currentCountLabel}>Current Count (15 min)</Text>
+        {currentIntervalCount !== null ? (
+          <View style={styles.currentCountValue}>
+            <Text style={styles.currentCountNumber}>{currentIntervalCount}</Text>
+            <Text style={styles.currentCountUnit}>birds</Text>
+          </View>
+        ) : (
+          <Text style={styles.noCountText}>No count available</Text>
+        )}
+        <TouchableOpacity 
+          style={styles.detailsButton}
+          onPress={() => setShowDetails(!showDetails)}
+        >
+          <Ionicons 
+            name={showDetails ? "chevron-up" : "chevron-down"} 
+            size={20} 
+            color={Colors.primaryRust} 
+          />
+          <Text style={styles.detailsButtonText}>
+            {showDetails ? "Hide Details" : "View Details"}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Calendar Button */}
+      <View style={styles.calendarSection}>
+        <TouchableOpacity 
+          style={styles.calendarButton}
+          onPress={() => setShowCalendar(!showCalendar)}
+        >
+          <Ionicons name="calendar" size={20} color={Colors.charcoalInk} />
+          <Text style={styles.calendarButtonText}>
+            {format(selectedDate, 'MMM d, yyyy')}
+          </Text>
+          <Ionicons name="chevron-down" size={20} color={Colors.charcoalInk} />
+        </TouchableOpacity>
+        {showCalendar && (
+          <DateTimePicker
+            value={selectedDate}
+            mode="date"
+            display="default"
+            onChange={handleDateChange}
+          />
+        )}
+      </View>
+
+      {/* Details Section (15-min history) */}
+      {showDetails && (
+        <View style={styles.detailsSection}>
+          <Text style={styles.detailsTitle}>15-Minute History</Text>
+          <FlatList
+            data={groupedEntries}
+            renderItem={({ item }) => renderGroup(item as any)}
+            keyExtractor={item => item.date}
+            contentContainerStyle={styles.listContent}
+            onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.5}
+            refreshControl={
+              <RefreshControl refreshing={isLoading} onRefresh={refresh} colors={[Colors.primaryRust]} />
+            }
+            ListEmptyComponent={renderEmptyState()}
+          />
+        </View>
+      )}
 
       <Modal
         visible={!!selectedImage}
@@ -478,5 +545,81 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.sm,
     color: '#FFFFFF',
     marginTop: Spacing.sm,
+  },
+  currentCountSection: {
+    backgroundColor: '#FFFFFF',
+    padding: Spacing.xl,
+    marginHorizontal: Spacing.xl,
+    marginTop: Spacing.md,
+    borderRadius: Radius.lg,
+    alignItems: 'center',
+  },
+  currentCountLabel: {
+    fontFamily: 'DMSans-Bold',
+    fontSize: Typography.fontSize.base,
+    color: Colors.mutedSienna,
+    marginBottom: Spacing.md,
+  },
+  currentCountValue: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: Spacing.md,
+  },
+  currentCountNumber: {
+    fontFamily: 'DMMono-Bold',
+    fontSize: Typography.fontSize['3xl'],
+    color: Colors.charcoalInk,
+    marginRight: Spacing.xs,
+  },
+  currentCountUnit: {
+    fontFamily: 'DMSans-Regular',
+    fontSize: Typography.fontSize.base,
+    color: Colors.mutedSienna,
+  },
+  noCountText: {
+    fontFamily: 'DMSans-Regular',
+    fontSize: Typography.fontSize.base,
+    color: Colors.mutedSienna,
+    marginBottom: Spacing.md,
+  },
+  detailsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+  },
+  detailsButtonText: {
+    fontFamily: 'DMSans-Bold',
+    fontSize: Typography.fontSize.sm,
+    color: Colors.primaryRust,
+  },
+  calendarSection: {
+    paddingHorizontal: Spacing.xl,
+    marginTop: Spacing.md,
+  },
+  calendarButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFFFFF',
+    padding: Spacing.md,
+    borderRadius: Radius.md,
+    gap: Spacing.sm,
+  },
+  calendarButtonText: {
+    fontFamily: 'DMSans-Regular',
+    fontSize: Typography.fontSize.base,
+    color: Colors.charcoalInk,
+  },
+  detailsSection: {
+    paddingHorizontal: Spacing.xl,
+    marginTop: Spacing.md,
+  },
+  detailsTitle: {
+    fontFamily: 'DMSans-Bold',
+    fontSize: Typography.fontSize.base,
+    color: Colors.charcoalInk,
+    marginBottom: Spacing.md,
   },
 });
