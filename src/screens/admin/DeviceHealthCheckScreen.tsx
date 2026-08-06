@@ -495,13 +495,16 @@ const styles = StyleSheet.create({
   },
   backlogContainer: {
     flexDirection: 'row',
-    gap: Spacing.lg,
+    flexWrap: 'wrap',
+    gap: Spacing.md,
     marginBottom: Spacing.md,
   },
   backlogItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.xs,
+    flex: 1,
+    minWidth: '45%',
   },
   backlogText: {
     fontFamily: 'DMSans-Regular',
