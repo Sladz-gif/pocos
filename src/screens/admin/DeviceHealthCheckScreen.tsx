@@ -72,7 +72,7 @@ export const DeviceHealthCheckScreen: React.FC<DeviceHealthCheckScreenProps> = (
       
       return {
         ...asset,
-        coopName: coop?.name,
+        coopName: coop?.name || 'Jetson Nano',
         latestSnapshot,
       };
     });
@@ -119,10 +119,12 @@ export const DeviceHealthCheckScreen: React.FC<DeviceHealthCheckScreenProps> = (
   };
 
   const isOnline = (asset: Asset) => {
-    if (!asset.last_seen_at) return false;
+    // Use last_seen_at if available, otherwise fall back to updated_at
+    const lastSeen = asset.last_seen_at || asset.updated_at;
+    if (!lastSeen) return false;
     const now = new Date();
     const twoHoursAgo = subHours(now, 2);
-    return isWithinInterval(new Date(asset.last_seen_at), { start: twoHoursAgo, end: now });
+    return isWithinInterval(new Date(lastSeen), { start: twoHoursAgo, end: now });
   };
 
   const renderDeviceItem = ({ item }: { item: DeviceWithCoop }) => {

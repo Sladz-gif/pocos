@@ -187,12 +187,17 @@ export const CoopTimelineScreen: React.FC<CoopTimelineScreenProps> = ({ navigati
           onPress={() => setSelectedImage(null)}
         >
           <TouchableOpacity activeOpacity={1} onPress={e => e.stopPropagation()} style={styles.imageModalInner}>
-            {selectedImage?.imageUrl && (
+            {selectedImage?.imageUrl ? (
               <Image
                 source={{ uri: selectedImage.imageUrl }}
                 style={styles.fullScreenImage}
                 resizeMode="contain"
               />
+            ) : (
+              <View style={styles.fullScreenImagePlaceholder}>
+                <Ionicons name="image-outline" size={48} color={Colors.softAsh} />
+                <Text style={styles.placeholderText}>No image available</Text>
+              </View>
             )}
             {selectedImage && (
               <View style={styles.imageCaption}>
@@ -345,6 +350,20 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '75%',
     borderRadius: Radius.lg,
+  },
+  fullScreenImagePlaceholder: {
+    width: '100%',
+    height: '75%',
+    borderRadius: Radius.lg,
+    backgroundColor: Colors.charcoalInk,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderText: {
+    fontFamily: 'DMSans-Regular',
+    fontSize: Typography.fontSize.sm,
+    color: Colors.mutedSienna,
+    marginTop: Spacing.sm,
   },
   imageCaption: {
     flexDirection: 'row',
