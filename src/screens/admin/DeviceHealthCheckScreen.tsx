@@ -25,7 +25,7 @@ interface DeviceWithCoop extends Asset {
 }
 
 export const DeviceHealthCheckScreen: React.FC<DeviceHealthCheckScreenProps> = ({ navigation }) => {
-  const { userRole } = useAuthStore();
+  const { userRole, restoreSession } = useAuthStore();
   const { assets, fetchAssets, fetchTestSnapshots, requestTestSnapshot, error, clearError } = useJetsonStore();
   const { profiles } = useProfileStore();
   const { isWatching, frameUrl, lastUpdated, isOffline, isLoading: liveViewLoading, error: liveViewError } = useLiveViewStore();
@@ -44,6 +44,10 @@ export const DeviceHealthCheckScreen: React.FC<DeviceHealthCheckScreenProps> = (
       } = await supabase.auth.getSession();
       if (isMounted) {
         setHasSession(!!session);
+        // Restore auth store session to ensure userRole is updated
+        if (session) {
+          await restoreSession();
+        }
       }
     };
 
@@ -51,9 +55,13 @@ export const DeviceHealthCheckScreen: React.FC<DeviceHealthCheckScreenProps> = (
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (isMounted) {
         setHasSession(!!session);
+        // Restore auth store session to ensure userRole is updated
+        if (session) {
+          await restoreSession();
+        }
       }
     });
 
@@ -61,7 +69,7 @@ export const DeviceHealthCheckScreen: React.FC<DeviceHealthCheckScreenProps> = (
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [restoreSession]);
 
   useEffect(() => {
     // Combine assets with their coops and latest snapshots
