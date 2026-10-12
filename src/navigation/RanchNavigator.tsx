@@ -83,6 +83,26 @@ export const RanchNavigator = () => {
         })}
       />
       <Tab.Screen
+        name="TasksStack"
+        component={TasksStack}
+        options={{
+          title: 'Tasks',
+          tabBarBadge: unreadTasksCount > 0 ? unreadTasksCount : undefined,
+          tabBarBadgeStyle: {
+            backgroundColor: Colors.accent,
+            color: Colors.primarySurface,
+          }
+        }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            const state = navigation.getState();
+            if (state.index > 0) {
+              navigation.popToTop();
+            }
+          },
+        })}
+      />
+      <Tab.Screen
         name="FlockStack"
         component={FlockStack}
         options={{
@@ -109,32 +129,10 @@ export const RanchNavigator = () => {
         listeners={({ navigation }) => ({
           tabPress: (e) => {
             e.preventDefault();
-            const state = navigation.getState();
-            if (state.index > 0) {
-              navigation.popToTop();
-            } else {
-              navigation.navigate('Flock');
-            }
-          },
-        })}
-      />
-      <Tab.Screen
-        name="TasksStack"
-        component={TasksStack}
-        options={{
-          title: 'Tasks',
-          tabBarBadge: unreadTasksCount > 0 ? unreadTasksCount : undefined,
-          tabBarBadgeStyle: {
-            backgroundColor: Colors.accent,
-            color: Colors.primarySurface,
-          }
-        }}
-        listeners={({ navigation }) => ({
-          tabPress: (e) => {
-            const state = navigation.getState();
-            if (state.index > 0) {
-              navigation.popToTop();
-            }
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'FlockStack' }],
+            });
           },
         })}
       />

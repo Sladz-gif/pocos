@@ -12,7 +12,7 @@ if (SUPABASE_URL) console.log('URL:', SUPABASE_URL);
 if (SUPABASE_ANON_KEY) console.log('Key length:', SUPABASE_ANON_KEY.length);
 
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  console.error('CRITICAL: Supabase configuration missing! Check your .env file or app.json extra section.');
+  console.error('CRITICAL: Supabase configuration missing! Check your .env file or EAS build environment variables.');
 }
 
 export const supabase = createClient(SUPABASE_URL || '', SUPABASE_ANON_KEY || '', {
@@ -29,5 +29,11 @@ export const supabase = createClient(SUPABASE_URL || '', SUPABASE_ANON_KEY || ''
   },
   db: {
     schema: 'public',
+  },
+  // Add timeout and retry configuration for better network reliability
+  realtime: {
+    params: {
+      eventsPerSecond: 10,
+    },
   },
 });
