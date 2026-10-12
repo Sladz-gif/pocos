@@ -13,13 +13,13 @@ type HelpSupportScreenProps = {
 
 export const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({ navigation }) => {
   const faqs = [
-    { q: 'How do I add a new animal?', a: 'Go to the Herd tab and tap the "+" button at the top right.' },
+    { q: 'How do I add a new animal?', a: 'Go to the Flock tab and tap the "+" button at the top right.' },
     { q: 'Can I change my access code?', a: 'Staff access codes are managed by the Ranch Owner or Admin.' },
     { q: 'How to mark a task as complete?', a: 'Tap on a task in the Task Board, then tap "Complete Task" at the bottom.' },
   ];
 
   const contactSupport = () => {
-    Linking.openURL('mailto:support@pocosranch.com');
+    Linking.openURL('mailto:support@amana.com');
   };
 
   return (
@@ -48,18 +48,18 @@ export const HelpSupportScreen: React.FC<HelpSupportScreenProps> = ({ navigation
           </View>
           <View style={styles.contactInfo}>
             <Text style={styles.contactLabel}>Email Support</Text>
-            <Text style={styles.contactValue}>support@pocosranch.com</Text>
+            <Text style={styles.contactValue}>support@amana.com</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color={Colors.softAsh} />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.contactCard} onPress={() => Linking.openURL('https://pocosranch.com')}>
+        <TouchableOpacity style={styles.contactCard} onPress={() => Linking.openURL('https://amana.com')}>
           <View style={styles.contactIcon}>
             <Ionicons name="globe-outline" size={24} color={Colors.primaryRust} />
           </View>
           <View style={styles.contactInfo}>
             <Text style={styles.contactLabel}>Website</Text>
-            <Text style={styles.contactValue}>www.pocosranch.com</Text>
+            <Text style={styles.contactValue}>www.amana.com</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color={Colors.softAsh} />
         </TouchableOpacity>

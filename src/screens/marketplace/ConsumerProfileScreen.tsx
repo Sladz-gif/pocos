@@ -51,7 +51,7 @@ export const ConsumerProfileScreen: React.FC<ConsumerProfileScreenProps> = ({ na
             <Ionicons name="person" size={40} color={Colors.primaryRust} />
           </View>
           <Text style={styles.userName}>{user?.name || 'Guest User'}</Text>
-          <Text style={styles.userEmail}>{user?.email || 'guest@pocos.dev'}</Text>
+          <Text style={styles.userEmail}>{user?.email || 'guest@amana.dev'}</Text>
         </View>
 
         <View style={styles.menuSection}>

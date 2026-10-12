@@ -1,26 +1,12 @@
-import { useEffect } from 'react';
-import { AppState } from 'react-native';
-import { liveViewService } from '../services/liveViewService';
+// MACHINE LEARNING / JETSON NANO - DISABLED
+// App is now for poultry and goats only
+// Live view hook for device streaming has been removed
 
 export const useLiveView = () => {
-  useEffect(() => {
-    // Handle app state changes (background/foreground)
-    const subscription = AppState.addEventListener('change', nextAppState => {
-      if (nextAppState !== 'active') {
-        // Stop watching when app goes to background
-        liveViewService.stop();
-      }
-    });
-
-    return () => {
-      subscription.remove();
-      liveViewService.destroy();
-    };
-  }, []);
-
   return {
-    start: () => liveViewService.initialize(),
-    stop: () => liveViewService.stop(),
-    refresh: () => liveViewService.refresh(),
+    start: () => {},
+    stop: () => {},
+    refresh: () => {},
   };
 };
+

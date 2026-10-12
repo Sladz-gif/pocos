@@ -200,9 +200,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.lg,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.primarySurface,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.softAsh,
+    borderBottomColor: Colors.border,
   },
   title: {
     fontFamily: 'PlayfairDisplay-Bold',

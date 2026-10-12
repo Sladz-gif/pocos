@@ -58,7 +58,7 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ route,
     addToCart(product, quantity);
     Alert.alert('Added to Cart', `${product.productName} has been added to your cart.`, [
       { text: 'Continue Shopping', style: 'cancel' },
-      { text: 'Go to Cart', onPress: () => navigation.navigate('Cart' as any) }
+      { text: 'Go to Cart', onPress: () => navigation.navigate('Cart' as never) }
     ]);
   };
 

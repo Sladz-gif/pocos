@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, Typography, Radius } from '../../constants';
 import { Ionicons } from '@expo/vector-icons';
 import { PCard, PBadge, PChip, PInput, PButton } from '../../components/ui';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { HerdStackParamList } from '../../navigation/types';
+import { FlockStackParamList } from '../../navigation/types';
 import { useLivestockStore } from '../../store/livestockStore';
 import { useProfileStore } from '../../store/profileStore';
 import { useAuthStore } from '../../store/authStore';
 import { Animal } from '../../types/livestock';
 
 type HerdScreenProps = {
-  navigation: StackNavigationProp<HerdStackParamList, 'Herd'>;
+  navigation: StackNavigationProp<FlockStackParamList, 'Flock'>;
 };
 
-const CATEGORIES = ['All', 'Cattle', 'Calves', 'Bulls', 'Heifers', 'Birds'];
+const CATEGORIES = ['All', 'Birds'];
 
 export const HerdScreen: React.FC<HerdScreenProps> = ({ navigation }) => {
   const { animals, fetchAnimals, setSelectedAnimal } = useLivestockStore();
@@ -31,16 +31,30 @@ export const HerdScreen: React.FC<HerdScreenProps> = ({ navigation }) => {
     }
   }, [ranch?.id, fetchAnimals, fetchProfiles]);
 
+  // Calculate total bird count from all profiles
+  const totalBirdCount = profiles.reduce((total, profile) => {
+    if (profile.animalType === 'bird') {
+      let cages: any[] = [];
+      if (profile.customFields) {
+        const cagesField = profile.customFields.find((f: any) => f.key === 'cages');
+        if (cagesField) {
+          try {
+            cages = JSON.parse(cagesField.value);
+          } catch (e) {
+            console.error('Error parsing cages:', e);
+          }
+        }
+      }
+      const cageBirdCount = cages.reduce((sum: number, cage: any) => sum + (parseInt(cage.birdCount) || 0), 0);
+      return total + cageBirdCount;
+    }
+    return total;
+  }, 0);
+
   const filteredAnimals = animals.filter(animal => {
     const matchesSearch = animal.animalId?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          animal.tagNumber?.toLowerCase().includes(searchQuery.toLowerCase());
-
-    if (selectedCategory === 'All') return matchesSearch;
-    if (selectedCategory === 'Cattle') return matchesSearch;
-    if (selectedCategory === 'Bulls') return matchesSearch && animal.sex?.toLowerCase() === 'male';
-    if (selectedCategory === 'Heifers') return matchesSearch && animal.sex?.toLowerCase() === 'female';
-    if (selectedCategory === 'Calves') return matchesSearch && animal.age !== undefined && animal.age < 1;
-    return matchesSearch;
+    return false; // No animals in poultry-only app
   });
 
   const filteredProfiles = profiles.filter(profile => {
@@ -50,60 +64,48 @@ export const HerdScreen: React.FC<HerdScreenProps> = ({ navigation }) => {
     return false;
   });
 
-  const renderProfile = ({ item }: { item: any }) => (
-    <TouchableOpacity 
-      onPress={() => {
-        navigation.navigate('BirdProfileDetail', { id: item.id });
-      }}
-    >
-      <PCard style={styles.animalCard}>
-        <View style={styles.animalInfo}>
-          <View style={styles.avatarPlaceholder}>
-            <Ionicons name="egg-outline" size={30} color={Colors.primaryRust} />
-          </View>
-          <View style={styles.details}>
-            <Text style={styles.animalName}>{item.name}</Text>
-            <Text style={styles.breedText}>{item.animalType} • Profile</Text>
-          </View>
-        </View>
-        <PBadge text="POULTRY" variant="info" />
-      </PCard>
-    </TouchableOpacity>
-  );
+  const renderProfile = ({ item }: { item: any }) => {
+    let cages: any[] = [];
+    if (item.customFields) {
+      const cagesField = item.customFields.find((f: any) => f.key === 'cages');
+      if (cagesField) {
+        try {
+          cages = JSON.parse(cagesField.value);
+        } catch (e) {
+          console.error('Error parsing cages:', e);
+        }
+      }
+    }
+    const cageBirdCount = cages.reduce((sum: number, cage: any) => sum + (parseInt(cage.birdCount) || 0), 0);
 
-  const renderAnimal = ({ item }: { item: Animal }) => {
-    const isWearOffActive = item.isMedicated && item.medicationDate && (
-      (new Date().getTime() - new Date(item.medicationDate).getTime()) < (28 * 24 * 60 * 60 * 1000)
-    );
-    
     return (
-      <TouchableOpacity 
+      <TouchableOpacity
         onPress={() => {
-          setSelectedAnimal(item);
-          navigation.navigate('AnimalDetail', { id: item.id });
+          navigation.navigate('BirdProfileDetail', { id: item.id });
         }}
       >
         <PCard style={styles.animalCard}>
           <View style={styles.animalInfo}>
-            <View style={styles.animalMain}>
-              <Text style={styles.animalId}>{item.animalId || item.tagNumber || 'No ID'}</Text>
-              {isWearOffActive && (
-                <View style={styles.wearOffBadge}>
-                  <Ionicons name="time-outline" size={12} color="#FFFFFF" />
-                  <Text style={styles.wearOffText}>Wear-off</Text>
-                </View>
-              )}
+            <View style={styles.avatarPlaceholder}>
+              <Ionicons name="egg-outline" size={30} color={Colors.primaryRust} />
             </View>
-            <View style={styles.animalMeta}>
-              <Text style={styles.breedText}>{item.breed}</Text>
-              <Text style={styles.dot}>•</Text>
-              <Text style={styles.genderText}>{item.sex || 'Unknown'}</Text>
+            <View style={styles.details}>
+              <Text style={styles.animalName}>{item.name}</Text>
+              <Text style={styles.breedText}>Bird Profile • {cageBirdCount} birds</Text>
             </View>
           </View>
-          <PBadge 
-            text={(item.healthStatus || 'healthy').toUpperCase()} 
-            variant={item.healthStatus === 'sick' ? 'error' : 'success'} 
-          />
+          <View style={styles.profileActions}>
+            <TouchableOpacity
+              style={styles.actionIconSmall}
+              onPress={(e) => {
+                e.stopPropagation();
+                navigation.navigate('BirdProfileDetail', { id: item.id });
+              }}
+            >
+              <Ionicons name="create-outline" size={18} color={Colors.primaryRust} />
+            </TouchableOpacity>
+            <PBadge text="POULTRY" variant="info" />
+          </View>
         </PCard>
       </TouchableOpacity>
     );
@@ -113,14 +115,49 @@ export const HerdScreen: React.FC<HerdScreenProps> = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>My Herd</Text>
-          <Text style={styles.subtitle}>{animals.length} animals registered</Text>
+          <Text style={styles.title}>My Flock</Text>
+          <Text style={styles.subtitle}>{totalBirdCount} total birds</Text>
         </View>
-        <TouchableOpacity 
-          style={styles.addButton}
-          onPress={() => navigation.navigate('SelectAnimalType')}
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={styles.quickStatsButton}
+            onPress={() => {
+              if (profiles.length > 0) {
+                navigation.navigate('BirdProfileDetail', { id: profiles[0].id });
+              } else {
+                Alert.alert('No Profiles', 'Please create a bird profile first');
+              }
+            }}
+          >
+            <Ionicons name="stats-chart" size={20} color={Colors.primarySurface} />
+            <Text style={styles.quickStatsText}>Quick Stats</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={() => navigation.navigate('SelectAnimalType')}
+          >
+            <Ionicons name="add" size={24} color={Colors.primarySurface} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.statsSection}>
+        <TouchableOpacity
+          style={styles.overallStatsCard}
+          onPress={() => {
+            if (profiles.length > 0) {
+              navigation.navigate('BirdProfileDetail', { id: profiles[0].id });
+            } else {
+              Alert.alert('No Profiles', 'Please create a bird profile first');
+            }
+          }}
         >
-          <Ionicons name="add" size={24} color="#FFFFFF" />
+          <Ionicons name="bar-chart-outline" size={24} color={Colors.primaryRust} />
+          <View style={styles.statsCardText}>
+            <Text style={styles.statsCardTitle}>Overall Stats</Text>
+            <Text style={styles.statsCardSubtitle}>View population data</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={Colors.mutedSienna} />
         </TouchableOpacity>
       </View>
 
@@ -155,14 +192,14 @@ export const HerdScreen: React.FC<HerdScreenProps> = ({ navigation }) => {
       </View>
 
       <FlatList
-        data={selectedCategory === 'Birds' ? filteredProfiles : [...filteredAnimals, ...(selectedCategory === 'All' ? filteredProfiles : [])]}
-        renderItem={({ item }) => 'sex' in item ? renderAnimal({ item }) : renderProfile({ item })}
+        data={filteredProfiles}
+        renderItem={renderProfile}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <Ionicons name="search-outline" size={48} color={Colors.softAsh} />
-            <Text style={styles.emptyText}>No animals found</Text>
+            <Text style={styles.emptyText}>No bird profiles found</Text>
           </View>
         }
       />
@@ -210,7 +247,7 @@ const styles = StyleSheet.create({
   wearOffText: {
     fontFamily: 'DMSans-Bold',
     fontSize: 10,
-    color: '#FFFFFF',
+    color: Colors.primarySurface,
     textTransform: 'uppercase',
   },
   animalMeta: {
@@ -227,6 +264,65 @@ const styles = StyleSheet.create({
     color: Colors.mutedSienna,
     fontSize: Typography.fontSize.sm,
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  quickStatsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primaryRust,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.full,
+    gap: Spacing.xs,
+  },
+  quickStatsText: {
+    fontFamily: 'DMSans-Bold',
+    fontSize: 12,
+    color: Colors.primarySurface,
+  },
+  statsSection: {
+    paddingHorizontal: Spacing.xl,
+    marginBottom: Spacing.md,
+  },
+  overallStatsCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primarySurface,
+    padding: Spacing.lg,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  statsCardText: {
+    flex: 1,
+    marginLeft: Spacing.md,
+  },
+  statsCardTitle: {
+    fontFamily: 'DMSans-Bold',
+    fontSize: 14,
+    color: Colors.charcoalInk,
+  },
+  statsCardSubtitle: {
+    fontFamily: 'DMSans-Regular',
+    fontSize: 12,
+    color: Colors.mutedSienna,
+  },
+  profileActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  actionIconSmall: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.warmSand,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   addButton: {
     backgroundColor: Colors.primaryRust,
     width: 44,
@@ -242,12 +338,12 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.primarySurface,
     paddingHorizontal: Spacing.md,
     height: 48,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.softAsh,
+    borderColor: Colors.border,
   },
   searchInput: {
     flex: 1,

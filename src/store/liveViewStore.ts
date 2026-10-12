@@ -1,3 +1,7 @@
+// MACHINE LEARNING / JETSON NANO - DISABLED
+// App is now for poultry and goats only
+// Live view store for device streaming has been removed
+
 import { create } from 'zustand';
 
 interface LiveViewState {
@@ -31,3 +35,5 @@ export const useLiveViewStore = create<LiveViewState>((set) => ({
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
 }));
+
+

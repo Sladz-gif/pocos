@@ -6,13 +6,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { PCard } from '../../components/ui';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
-import { HerdStackParamList } from '../../navigation/types';
+import { FlockStackParamList } from '../../navigation/types';
 import { useProfileStore } from '../../store/profileStore';
 import { useLivestockStore } from '../../store/livestockStore';
 
 type ProfileDetailScreenProps = {
-  navigation: StackNavigationProp<HerdStackParamList, 'ProfileDetail'>;
-  route: RouteProp<HerdStackParamList, 'ProfileDetail'>;
+  navigation: StackNavigationProp<FlockStackParamList, 'ProfileDetail'>;
+  route: RouteProp<FlockStackParamList, 'ProfileDetail'>;
 };
 
 export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({ navigation, route }) => {
@@ -38,11 +38,7 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({ naviga
 
   const getAnimalTypeIcon = (type: string): keyof typeof Ionicons.glyphMap => {
     const icons: Record<string, keyof typeof Ionicons.glyphMap> = {
-      cattle: 'paw',
-      sheep: 'cloud',
       goat: 'leaf',
-      horse: 'paw',
-      donkey: 'paw',
       bird: 'leaf',
     };
     return icons[type] || 'paw';
@@ -50,14 +46,10 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({ naviga
 
   const getAnimalTypeColor = (type: string) => {
     const colors: Record<string, string> = {
-      cattle: '#8B4513',
-      sheep: '#D3D3D3',
-      goat: '#A0522D',
-      horse: '#654321',
-      donkey: '#696969',
-      bird: '#FF6347',
+      goat: Colors.accent,
+      bird: Colors.accent,
     };
-    return colors[type] || '#8B4513';
+    return colors[type] || Colors.accent;
   };
 
   if (!profile) {
@@ -125,12 +117,12 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({ naviga
             style={styles.birdCountButton}
             onPress={() => navigation.navigate('BirdCount', { profileId: profile.id })}
           >
-            <Ionicons name="bar-chart" size={24} color="#FFFFFF" />
+            <Ionicons name="bar-chart" size={24} color={Colors.primarySurface} />
             <View style={styles.birdCountButtonContent}>
               <Text style={styles.birdCountButtonTitle}>View Bird Counts</Text>
               <Text style={styles.birdCountButtonSubtitle}>Live tracking & history</Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color="#FFFFFF" />
+            <Ionicons name="chevron-forward" size={20} color={Colors.primarySurface} />
           </TouchableOpacity>
         )}
 
@@ -138,7 +130,7 @@ export const ProfileDetailScreen: React.FC<ProfileDetailScreenProps> = ({ naviga
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Animals</Text>
             <TouchableOpacity style={styles.addButton} onPress={handleAddAnimal}>
-              <Ionicons name="add" size={20} color="#FFFFFF" />
+              <Ionicons name="add" size={20} color={Colors.primarySurface} />
               <Text style={styles.addButtonText}>Add</Text>
             </TouchableOpacity>
           </View>
@@ -187,8 +179,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.softAsh,
-    backgroundColor: '#FFFFFF',
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.primarySurface,
   },
   title: {
     fontFamily: 'PlayfairDisplay-Bold',
@@ -313,7 +305,7 @@ const styles = StyleSheet.create({
   addButtonText: {
     fontFamily: 'DMSans-Medium',
     fontSize: Typography.fontSize.sm,
-    color: '#FFFFFF',
+    color: Colors.primarySurface,
   },
   emptyState: {
     alignItems: 'center',
@@ -339,15 +331,15 @@ const styles = StyleSheet.create({
   addFirstButtonText: {
     fontFamily: 'DMSans-Medium',
     fontSize: Typography.fontSize.sm,
-    color: '#FFFFFF',
+    color: Colors.primarySurface,
   },
   animalCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.primarySurface,
     borderRadius: Radius.lg,
     padding: Spacing.lg,
     marginBottom: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.softAsh,
+    borderColor: Colors.border,
   },
   animalHeader: {
     flexDirection: 'row',
@@ -389,11 +381,11 @@ const styles = StyleSheet.create({
   birdCountButtonTitle: {
     fontFamily: 'DMSans-Bold',
     fontSize: Typography.fontSize.base,
-    color: '#FFFFFF',
+    color: Colors.primarySurface,
   },
   birdCountButtonSubtitle: {
     fontFamily: 'DMSans-Regular',
     fontSize: Typography.fontSize.sm,
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: 'rgba(255, 255, 255, 0.8)', // Keep as rgba for transparency effect
   },
 });

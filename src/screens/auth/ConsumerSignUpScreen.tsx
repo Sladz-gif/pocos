@@ -49,7 +49,7 @@ export const ConsumerSignUpScreen: React.FC<ConsumerSignUpScreenProps> = ({ navi
           </TouchableOpacity>
 
           <View style={styles.header}>
-            <Text style={styles.title}>Join Pocos</Text>
+            <Text style={styles.title}>Join AmanA</Text>
             <Text style={styles.subtitle}>Discover and order quality ranch products directly from the source.</Text>
           </View>
 

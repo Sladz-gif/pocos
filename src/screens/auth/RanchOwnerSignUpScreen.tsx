@@ -72,8 +72,8 @@ export const RanchOwnerSignUpScreen: React.FC<RanchOwnerSignUpScreenProps> = ({ 
       <SafeAreaView style={styles.successContainer}>
         <View style={styles.successContent}>
           <Ionicons name="checkmark-circle" size={100} color={Colors.successMoss} />
-          <Text style={styles.successTitle}>Ranch Registered!</Text>
-          <Text style={styles.successSubtitle}>Welcome to Pocos, {name}. Your ranch is ready.</Text>
+          <Text style={styles.successTitle}>Farm Registered!</Text>
+          <Text style={styles.successSubtitle}>Welcome to AmanA, {name}. Your farm is ready.</Text>
           <ActivityIndicator color={Colors.primaryRust} style={{ marginTop: 20 }} />
         </View>
       </SafeAreaView>
@@ -95,13 +95,13 @@ export const RanchOwnerSignUpScreen: React.FC<RanchOwnerSignUpScreenProps> = ({ 
           </TouchableOpacity>
 
           <View style={styles.header}>
-            <Text style={styles.title}>Register Your Ranch</Text>
-            <Text style={styles.subtitle}>Join the network of modern African ranches.</Text>
+            <Text style={styles.title}>Register Your Farm</Text>
+            <Text style={styles.subtitle}>Join the network of modern African farms.</Text>
           </View>
 
           <View style={styles.form}>
             <PInput
-              label="Ranch Name"
+              label="Farm Name"
               placeholder="e.g. Asante Farms"
               value={ranchName}
               onChangeText={setRanchName}
@@ -133,7 +133,7 @@ export const RanchOwnerSignUpScreen: React.FC<RanchOwnerSignUpScreenProps> = ({ 
               error={passwordError}
             />
             <PInput
-              label="Ranch Location"
+              label="Farm Location"
               placeholder="e.g. Kumasi, Ghana"
               value={ranchLocation}
               onChangeText={setRanchLocation}
@@ -141,18 +141,18 @@ export const RanchOwnerSignUpScreen: React.FC<RanchOwnerSignUpScreenProps> = ({ 
 
             {formError ? <Text style={styles.errorText}>{formError}</Text> : null}
 
-            <PButton 
-              title={isLoading ? "Creating Account..." : "Register Ranch"}
+            <PButton
+              title={isLoading ? "Creating Account..." : "Register Farm"}
               onPress={handleSignUp}
               loading={isLoading}
               style={styles.submitButton}
             />
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.loginLink}
               onPress={() => navigation.navigate('RanchOwnerLogin')}
             >
-              <Text style={styles.loginLinkText}>Already have a ranch? Sign In</Text>
+              <Text style={styles.loginLinkText}>Already have a farm? Sign In</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

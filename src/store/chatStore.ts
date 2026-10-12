@@ -195,13 +195,13 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       } as any);
 
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('pocos-images')
+        .from('amana-images')
         .upload(path, formData);
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('pocos-images')
+        .from('amana-images')
         .getPublicUrl(path);
 
       // 2. Create message with attachment

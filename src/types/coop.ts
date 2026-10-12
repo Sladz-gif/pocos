@@ -11,21 +11,22 @@ export interface Coop {
   updatedAt: string;
 }
 
-export interface BirdDetectionEvent {
-  id: string;
-  assetId: string;
-  detectedAt: string;
-  imageUrl?: string;
-  confidence?: number;
-  trackId?: string;
-  count?: number;
-  intervalCount: number | null;
-  createdAt: string;
-}
+// Jetson-related types - disabled
+// export interface BirdDetectionEvent {
+//   id: string;
+//   assetId: string;
+//   detectedAt: string;
+//   imageUrl?: string;
+//   confidence?: number;
+//   trackId?: string;
+//   count?: number;
+//   intervalCount: number | null;
+//   createdAt: string;
+// }
 
-export interface CoopTimelineEntry {
-  date: string;
-  detections: BirdDetectionEvent[];
-}
+// export interface CoopTimelineEntry {
+//   date: string;
+//   detections: BirdDetectionEvent[];
+// }
 
 export type { BirdCount };

@@ -5,13 +5,13 @@ import { Colors, Spacing, Typography, Radius } from '../../constants';
 import { Ionicons } from '@expo/vector-icons';
 import { PCard } from '../../components/ui';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { HerdStackParamList } from '../../navigation/types';
+import { FlockStackParamList } from '../../navigation/types';
 import { usePoultryStore } from '../../store/poultryStore';
 import { usePoultry } from '../../hooks/usePoultry';
 import { format } from 'date-fns';
 
 type BirdCountScreenProps = {
-  navigation: StackNavigationProp<HerdStackParamList, 'BirdCount'>;
+  navigation: StackNavigationProp<FlockStackParamList, 'BirdCount'>;
 };
 
 export const BirdCountScreen: React.FC<BirdCountScreenProps> = ({ navigation }) => {

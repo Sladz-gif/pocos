@@ -2,7 +2,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../config/supabase';
 import { Platform } from 'react-native';
 
-const BUCKET = 'pocos-images';
+const BUCKET = 'amana-images';
 
 export async function pickImage(aspect: [number, number] = [1, 1]): Promise<string | null> {
   const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();

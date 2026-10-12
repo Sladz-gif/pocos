@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, TextInput, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
@@ -8,6 +8,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useLivestockStore } from '../../store/livestockStore';
 import { useTaskStore } from '../../store/taskStore';
 import { useActivityLogStore, ActivityLog } from '../../store/activityLogStore';
+import { useProfileStore } from '../../store/profileStore';
 import { Ionicons } from '@expo/vector-icons';
 import { PCard } from '../../components/ui';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -18,14 +19,17 @@ type HomeScreenProps = {
   navigation: StackNavigationProp<HomeStackParamList, 'Home'>;
 };
 
-export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
+export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const insets = useSafeAreaInsets();
   const { user, ranch, staff, fetchStaff } = useAuthStore();
   const { animals, medicationRecords, fetchAnimals, fetchMedicationRecords } = useLivestockStore();
-  const { tasks, fetchTasks } = useTaskStore();
+  const { tasks, fetchTasks, addTask } = useTaskStore();
   const { logs, fetchLogs } = useActivityLogStore();
-  
+  const { profiles, fetchProfiles } = useProfileStore();
+
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [showTaskInput, setShowTaskInput] = useState(false);
+  const [newTask, setNewTask] = useState('');
 
   useFocusEffect(
     useCallback(() => {
@@ -35,9 +39,61 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         fetchTasks(ranch.id);
         fetchLogs(ranch.id);
         fetchStaff(ranch.id);
+        fetchProfiles(ranch.id);
       }
-    }, [ranch?.id, fetchAnimals, fetchMedicationRecords, fetchTasks, fetchLogs, fetchStaff])
+    }, [ranch?.id, fetchAnimals, fetchMedicationRecords, fetchTasks, fetchLogs, fetchStaff, fetchProfiles])
   );
+
+  // Check if any cages exist
+  const hasCages = profiles.some((profile: any) => {
+    if (profile.customFields) {
+      const cagesField = profile.customFields.find((f: any) => f.key === 'cages');
+      if (cagesField) {
+        try {
+          const cages = JSON.parse(cagesField.value);
+          return cages.length > 0;
+        } catch (e) {
+          return false;
+        }
+      }
+    }
+    return false;
+  });
+
+  // Count total cages across all profiles
+  const totalCages = profiles.reduce((total, profile: any) => {
+    if (profile.customFields) {
+      const cagesField = profile.customFields.find((f: any) => f.key === 'cages');
+      if (cagesField) {
+        try {
+          const cages = JSON.parse(cagesField.value);
+          return total + cages.length;
+        } catch (e) {
+          return total;
+        }
+      }
+    }
+    return total;
+  }, 0);
+
+  const handleAddTask = async () => {
+    if (newTask.trim() && ranch?.id) {
+      try {
+        await addTask({
+          title: newTask.trim(),
+          description: '',
+          dueDate: format(new Date(), 'yyyy-MM-dd'),
+          priority: 'medium',
+          status: 'pending',
+        }, ranch.id);
+        setNewTask('');
+        setShowTaskInput(false);
+        await fetchTasks(ranch.id);
+      } catch (error) {
+        Alert.alert('Error', 'Failed to add task');
+      }
+    }
+  };
 
   // Show all onboarded staff members
   const onboardedStaff = staff;
@@ -54,28 +110,28 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   }, [currentDate]);
 
   const stats = [
-    { 
-      label: 'On Medication', 
-      value: medicationRecords.length.toString(), 
-      icon: 'medkit' as keyof typeof Ionicons.glyphMap, 
+    {
+      label: 'On Medication',
+      value: medicationRecords.length.toString(),
+      icon: 'medkit' as keyof typeof Ionicons.glyphMap,
       alert: medicationRecords.length > 0,
-      onPress: () => navigation.navigate('HerdStack', { screen: 'Herd' })
+      onPress: () => navigation.navigate('FlockStack' as never)
     },
-    { 
-      label: 'Pregnant', 
-      value: animals.filter(a => a.healthStatus === 'pregnant').length.toString(), 
-      icon: 'heart' as keyof typeof Ionicons.glyphMap,
-      onPress: () => navigation.navigate('HerdStack', { screen: 'Herd' })
+    {
+      label: 'Birds on Diet',
+      value: animals.filter(a => a.isSpecialFeeding).length.toString(),
+      icon: 'restaurant' as keyof typeof Ionicons.glyphMap,
+      onPress: () => navigation.navigate('FlockStack' as never)
     },
-    { 
-      label: 'Tasks Due Today', 
-      value: tasks.filter(t => t.status !== 'completed' && t.dueDate === format(new Date(), 'yyyy-MM-dd')).length.toString(), 
+    {
+      label: 'Tasks Due Today',
+      value: tasks.filter(t => t.status !== 'completed' && t.dueDate === format(new Date(), 'yyyy-MM-dd')).length.toString(),
       icon: 'calendar' as keyof typeof Ionicons.glyphMap,
-      onPress: () => navigation.navigate('TasksStack', { screen: 'TaskBoard' })
+      onPress: () => navigation.navigate('TasksStack' as never)
     },
-    { 
-      label: 'Staff On Duty', 
-      value: onboardedStaff.length.toString(), 
+    {
+      label: 'Staff On Duty',
+      value: onboardedStaff.length.toString(),
       icon: 'people' as keyof typeof Ionicons.glyphMap,
       onPress: () => navigation.navigate('StaffActivityMonitor')
     },
@@ -86,9 +142,9 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       style={styles.activityItem}
       onPress={() => {
         if (item.entityType === 'animal') {
-          navigation.navigate('HerdStack', { screen: 'AnimalDetail', params: { id: item.entityId } } as any);
+          navigation.navigate('FlockStack' as never);
         } else if (item.entityType === 'task') {
-          navigation.navigate('TasksStack', { screen: 'TaskDetail', params: { id: item.entityId } } as any);
+          navigation.navigate('TasksStack' as never);
         }
       }}
     >
@@ -105,22 +161,16 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="light" />
-      
+      <StatusBar style="dark" />
+
       <View style={[styles.header, { paddingTop: insets.top + Spacing.md }]}>
         <View style={styles.headerTop}>
           <View>
-            <Text style={styles.ranchTitle}>{ranch?.name || 'Pocos Ranch'}</Text>
+            <Text style={styles.ranchTitle}>{ranch?.name || 'AmanA Farm'}</Text>
             <Text style={styles.dateText}>{format(currentDate, 'EEEE, d MMMM yyyy')}</Text>
           </View>
-          <TouchableOpacity 
-            style={styles.adminButton}
-            onPress={() => navigation.getParent()?.getParent()?.navigate('AdminModal')}
-          >
-            <Ionicons name="settings-outline" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
         </View>
-        
+
         <View style={styles.userRow}>
           <View style={styles.roleBadge}>
             <Text style={styles.roleText}>{(user?.role || 'Staff').replace('_', ' ').toUpperCase()}</Text>
@@ -129,19 +179,63 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         </View>
       </View>
 
-      <ScrollView 
-        style={styles.scrollView} 
+      <ScrollView
+        style={styles.scrollView}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + Spacing.xl }]}
         showsVerticalScrollIndicator={false}
       >
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Tasks Today</Text>
+            <TouchableOpacity onPress={() => setShowTaskInput(!showTaskInput)}>
+              <Ionicons name={showTaskInput ? 'close' : 'add'} size={24} color={Colors.primaryRust} />
+            </TouchableOpacity>
+          </View>
+          {showTaskInput && (
+            <View style={styles.taskInputContainer}>
+              <TextInput
+                style={styles.taskInput}
+                placeholder="Add a task..."
+                value={newTask}
+                onChangeText={setNewTask}
+                placeholderTextColor={Colors.mutedSienna}
+              />
+              <TouchableOpacity style={styles.addTaskButton} onPress={handleAddTask}>
+                <Ionicons name="checkmark" size={20} color={Colors.primarySurface} />
+              </TouchableOpacity>
+            </View>
+          )}
+          <View style={styles.taskList}>
+            {tasks.filter(t => t.dueDate === format(new Date(), 'yyyy-MM-dd')).slice(0, 3).map((task) => (
+              <PCard key={task.id} style={styles.taskCard}>
+                <View style={styles.taskLeft}>
+                  <Ionicons
+                    name={task.status === 'completed' ? 'checkmark-circle' : 'radio-button-off'}
+                    size={20}
+                    color={task.status === 'completed' ? Colors.successMoss : Colors.mutedSienna}
+                  />
+                  <Text style={styles.taskText}>{task.title}</Text>
+                </View>
+                <PBadge
+                  text={task.status.toUpperCase()}
+                  variant={task.status === 'completed' ? 'success' : 'neutral'}
+                />
+              </PCard>
+            ))}
+            {tasks.filter(t => t.dueDate === format(new Date(), 'yyyy-MM-dd')).length === 0 && (
+              <Text style={styles.emptyText}>No tasks for today</Text>
+            )}
+          </View>
+        </View>
+
         <View style={styles.statsGrid}>
           {stats.map((stat, index) => (
             <PCard key={index} style={styles.statCard} onPress={stat.onPress}>
               <View style={styles.statHeader}>
-                <Ionicons 
-                  name={stat.icon as any} 
-                  size={20} 
-                  color={stat.alert ? Colors.primaryRust : Colors.mutedSienna} 
+                <Ionicons
+                  name={stat.icon as any}
+                  size={20}
+                  color={stat.alert ? Colors.primaryRust : Colors.mutedSienna}
                 />
               </View>
               <Text style={styles.statValue}>{stat.value}</Text>
@@ -153,42 +247,66 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
           <View style={styles.actionRow}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.actionButton}
-              onPress={() => navigation.navigate('HerdStack', { screen: 'AddAnimal' } as any)}
+              onPress={() => navigation.navigate('FlockStack' as never, { screen: 'SelectAnimalType' })}
             >
               <View style={styles.actionIcon}>
                 <Ionicons name="add" size={24} color={Colors.primaryRust} />
               </View>
-              <Text style={styles.actionText}>Add Animal</Text>
+              <Text style={styles.actionText}>Add Bird</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.actionButton}
-              onPress={() => navigation.navigate('TasksStack', { screen: 'CreateTask' } as any)}
+              onPress={() => navigation.navigate('TasksStack' as never)}
             >
               <View style={styles.actionIcon}>
                 <Ionicons name="checkbox-outline" size={24} color={Colors.primaryRust} />
               </View>
               <Text style={styles.actionText}>New Task</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.actionButton}
-              onPress={() => navigation.navigate('HerdStack', { screen: 'Herd' } as any)}
+              onPress={() => {
+                if (profiles.length > 0) {
+                  navigation.navigate('FlockStack' as never, { screen: 'BirdProfileDetail', params: { id: profiles[0].id } });
+                } else {
+                  Alert.alert('No Profiles', 'Please create a bird profile first');
+                }
+              }}
             >
               <View style={styles.actionIcon}>
-                <Ionicons name="medkit-outline" size={24} color={Colors.primaryRust} />
+                <Ionicons name="stats-chart-outline" size={24} color={Colors.primaryRust} />
               </View>
-              <Text style={styles.actionText}>Log Meds</Text>
+              <Text style={styles.actionText}>Bird Stats</Text>
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.actionButton}
-              onPress={() => navigation.navigate('StoreStack', { screen: 'AddListing' } as any)}
-            >
-              <View style={styles.actionIcon}>
-                <Ionicons name="cart-outline" size={24} color={Colors.primaryRust} />
-              </View>
-              <Text style={styles.actionText}>Add Listing</Text>
-            </TouchableOpacity>
+            {totalCages === 0 ? (
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => navigation.navigate('FlockStack' as never, { screen: 'CreateProfile' })}
+              >
+                <View style={styles.actionIcon}>
+                  <Ionicons name="grid-outline" size={24} color={Colors.primaryRust} />
+                </View>
+                <Text style={styles.actionText}>Add First Cage</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={() => {
+                  if (profiles.length > 0) {
+                    navigation.navigate('FlockStack' as never, { screen: 'BirdProfileDetail', params: { id: profiles[0].id } });
+                  } else {
+                    Alert.alert('No Profiles', 'Please create a bird profile first');
+                  }
+                }}
+              >
+                <View style={styles.actionIcon}>
+                  <Ionicons name="grid-outline" size={24} color={Colors.primaryRust} />
+                </View>
+                <Text style={styles.actionText}>Add Cage</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
@@ -243,6 +361,7 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
           </ScrollView>
         </View>
       </ScrollView>
+      <View style={{ height: 90 }} />
     </View>
   );
 };
@@ -250,14 +369,12 @@ export const HomeScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.paleParchment,
+    backgroundColor: Colors.background,
   },
   header: {
-    backgroundColor: Colors.deepPlum,
+    backgroundColor: Colors.background,
     paddingHorizontal: Spacing.xl,
     paddingBottom: Spacing.xl,
-    borderBottomLeftRadius: Radius.xl,
-    borderBottomRightRadius: Radius.xl,
   },
   headerTop: {
     flexDirection: 'row',
@@ -267,23 +384,15 @@ const styles = StyleSheet.create({
   ranchTitle: {
     fontFamily: 'PlayfairDisplay-Bold',
     fontSize: 28,
-    color: '#FFFFFF',
+    color: Colors.charcoalInk,
   },
   dateText: {
     fontFamily: 'DMSans-Medium',
     fontSize: 12,
-    color: Colors.warmSand,
+    color: Colors.mutedSienna,
     marginTop: 4,
     opacity: 0.8,
     textTransform: 'uppercase',
-  },
-  adminButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   userRow: {
     flexDirection: 'row',
@@ -291,7 +400,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xl,
   },
   roleBadge: {
-    backgroundColor: Colors.antiqueGold,
+    backgroundColor: Colors.primaryAccent,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: Radius.full,
@@ -305,7 +414,7 @@ const styles = StyleSheet.create({
   welcomeUser: {
     fontFamily: 'DMSans-Medium',
     fontSize: 14,
-    color: '#FFFFFF',
+    color: Colors.charcoalInk,
     opacity: 0.9,
   },
   scrollView: {
@@ -354,6 +463,52 @@ const styles = StyleSheet.create({
     color: Colors.charcoalInk,
     marginBottom: Spacing.md,
   },
+  taskInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  taskInput: {
+    flex: 1,
+    backgroundColor: Colors.primarySurface,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginRight: Spacing.sm,
+    fontFamily: 'DMSans-Regular',
+    fontSize: 14,
+    color: Colors.textPrimary,
+  },
+  addTaskButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.primaryRust,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  taskList: {
+    gap: Spacing.sm,
+  },
+  taskCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: Spacing.md,
+  },
+  taskLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: Spacing.md,
+  },
+  taskText: {
+    fontFamily: 'DMSans-Medium',
+    fontSize: 14,
+    color: Colors.charcoalInk,
+  },
   viewAllText: {
     fontFamily: 'DMSans-Bold',
     fontSize: 12,
@@ -371,11 +526,11 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: Radius.lg,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.primarySurface,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: Spacing.sm,
-    shadowColor: Colors.charcoalInk,
+    shadowColor: Colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 5,
@@ -452,7 +607,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: Colors.successMoss,
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: Colors.primarySurface,
   },
   staffName: {
     fontFamily: 'DMSans-Medium',

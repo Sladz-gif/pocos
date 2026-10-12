@@ -5,22 +5,17 @@ import { Colors, Spacing, Typography, Radius } from '../../constants';
 import { Ionicons } from '@expo/vector-icons';
 import { PInput, PButton } from '../../components/ui';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { HerdStackParamList } from '../../navigation/types';
+import { FlockStackParamList } from '../../navigation/types';
 import { useProfileStore } from '../../store/profileStore';
 import { useAuthStore } from '../../store/authStore';
 import { AnimalType, CustomField } from '../../types/livestock';
 import { v4 as uuidv4 } from 'uuid';
 
 type CreateProfileScreenProps = {
-  navigation: StackNavigationProp<HerdStackParamList, 'CreateProfile'>;
+  navigation: StackNavigationProp<FlockStackParamList, 'CreateProfile'>;
 };
 
 const ANIMAL_TYPES: { type: AnimalType; label: string }[] = [
-  { type: 'cattle', label: 'Cattle' },
-  { type: 'sheep', label: 'Sheep' },
-  { type: 'goat', label: 'Goat' },
-  { type: 'horse', label: 'Horse' },
-  { type: 'donkey', label: 'Donkey' },
   { type: 'bird', label: 'Bird' },
 ];
 
@@ -209,7 +204,7 @@ export const CreateProfileScreen: React.FC<CreateProfileScreenProps> = ({ naviga
                 </View>
 
                 <TouchableOpacity style={styles.addFieldButton} onPress={handleAddCustomField}>
-                  <Ionicons name="add" size={20} color="#FFFFFF" />
+                  <Ionicons name="add" size={20} color={Colors.primarySurface} />
                   <Text style={styles.addButtonText}>Add Field</Text>
                 </TouchableOpacity>
               </View>
@@ -305,8 +300,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.softAsh,
-    backgroundColor: '#FFFFFF',
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.primarySurface,
   },
   title: {
     fontFamily: 'PlayfairDisplay-Bold',
@@ -344,12 +339,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.primarySurface,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.softAsh,
+    borderColor: Colors.border,
     marginBottom: Spacing.md,
   },
   dropdownText: {
@@ -358,10 +353,10 @@ const styles = StyleSheet.create({
     color: Colors.charcoalInk,
   },
   dropdownList: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.primarySurface,
     borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.softAsh,
+    borderColor: Colors.border,
     marginBottom: Spacing.md,
     overflow: 'hidden',
   },
@@ -390,11 +385,11 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xl,
   },
   addFieldContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.primarySurface,
     borderRadius: Radius.lg,
     padding: Spacing.lg,
     borderWidth: 1,
-    borderColor: Colors.softAsh,
+    borderColor: Colors.border,
     marginBottom: Spacing.md,
   },
   fieldTitleInput: {
@@ -445,15 +440,15 @@ const styles = StyleSheet.create({
   addButtonText: {
     fontFamily: 'DMSans-Medium',
     fontSize: Typography.fontSize.sm,
-    color: '#FFFFFF',
+    color: Colors.primarySurface,
   },
   customFieldItem: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.primarySurface,
     borderRadius: Radius.md,
     padding: Spacing.md,
     marginBottom: Spacing.sm,
     borderWidth: 1,
-    borderColor: Colors.softAsh,
+    borderColor: Colors.border,
   },
   fieldHeader: {
     flexDirection: 'row',
@@ -502,7 +497,7 @@ const styles = StyleSheet.create({
     color: Colors.charcoalInk,
   },
   booleanOptionTextSelected: {
-    color: '#FFFFFF',
+    color: Colors.primarySurface,
   },
   submitButton: {
     marginTop: Spacing.xl,

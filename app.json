@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Animal",
+    "name": "AmanA",
     "slug": "pocos-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -9,28 +9,35 @@
     "splash": {
       "image": "./src/assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0D0D0D"
+      "backgroundColor": "#FFFFFF"
     },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.pocos.app",
+      "bundleIdentifier": "com.amana.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
+      "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#0D0D0D",
+        "backgroundColor": "#FFFFFF",
         "foregroundImage": "./src/assets/android-icon-foreground.png",
         "backgroundImage": "./src/assets/android-icon-background.png",
         "monochromeImage": "./src/assets/android-icon-monochrome.png"
       },
-      "package": "com.pocos.app",
+      "package": "com.amana.app",
       "predictiveBackGestureEnabled": false,
-      "newArchEnabled": false
+      "newArchEnabled": false,
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE",
+        "ACCESS_WIFI_STATE"
+      ],
+      "usesCleartextTraffic": true
     },
     "web": {
       "favicon": "./src/assets/favicon.png",
@@ -58,11 +65,13 @@
     "experiments": {
       "typedRoutes": true
     },
-    "scheme": "pocos-app",
+    "scheme": "amana-app",
     "extra": {
       "eas": {
         "projectId": "c27100bd-47ea-44ca-aede-edc1845197a8"
-      }
+      },
+      "EXPO_PUBLIC_SUPABASE_URL": "https://incnvieiiakiqjtgsvkp.supabase.co",
+      "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImluY252aWVpaWFraXFqdGdzdmtwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NjA2NzEsImV4cCI6MjA5NTEzNjY3MX0.ctuw0Twx5EPbh37q_ezUvNMEXp051KDcO4nwzvluykU"
     },
     "owner": "tttttt2222s-team"
   }

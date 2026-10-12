@@ -5,14 +5,14 @@ import { Colors, Spacing, Typography, Radius } from '../../constants';
 import { Ionicons } from '@expo/vector-icons';
 import { PInput, PButton } from '../../components/ui';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { HerdStackParamList } from '../../navigation/types';
+import { FlockStackParamList } from '../../navigation/types';
 import { useProfileStore } from '../../store/profileStore';
 import { useAuthStore } from '../../store/authStore';
 import { v4 as uuidv4 } from 'uuid';
 import { format } from 'date-fns';
 
 type AddBirdProfileScreenProps = {
-  navigation: StackNavigationProp<HerdStackParamList, 'AddBirdProfile'>;
+  navigation: StackNavigationProp<FlockStackParamList, 'AddBirdProfile'>;
 };
 
 interface Cage {

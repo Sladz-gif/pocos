@@ -53,12 +53,12 @@ export const ManageRanchProfileScreen: React.FC<ManageRanchProfileScreenProps> =
 
   const handleSave = async () => {
     if (!form.name.trim()) {
-      return Alert.alert('Error', 'Ranch name is required');
+      return Alert.alert('Error', 'Farm name is required');
     }
 
     try {
       await updateRanch(form);
-      Alert.alert('Success', 'Ranch profile updated successfully.');
+      Alert.alert('Success', 'Farm profile updated successfully.');
       navigation.goBack();
     } catch (error) {
       Alert.alert('Error', 'Failed to update ranch profile.');
@@ -71,7 +71,7 @@ export const ManageRanchProfileScreen: React.FC<ManageRanchProfileScreenProps> =
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={Colors.charcoalInk} />
         </TouchableOpacity>
-        <Text style={styles.title}>Ranch Profile</Text>
+        <Text style={styles.title}>Farm Profile</Text>
         <TouchableOpacity onPress={handleSave} disabled={isLoading}>
           <Text style={[styles.saveText, isLoading && { opacity: 0.5 }]}>Save</Text>
         </TouchableOpacity>
@@ -91,7 +91,7 @@ export const ManageRanchProfileScreen: React.FC<ManageRanchProfileScreenProps> =
                 <ImagePickerField
                   value={form.logo}
                   onChange={(uri) => setForm({ ...form, logo: uri || '' })}
-                  placeholder="Ranch Logo"
+                  placeholder="Farm Logo"
                   aspect={[1, 1]}
                   folder="logos"
                 />
@@ -112,7 +112,7 @@ export const ManageRanchProfileScreen: React.FC<ManageRanchProfileScreenProps> =
           <View style={styles.formSection}>
             <Text style={styles.sectionLabel}>Basic Information</Text>
             <PInput
-              label="Ranch Name"
+              label="Farm Name"
               placeholder="e.g. Asante Farms"
               value={form.name}
               onChangeText={(text) => setForm({ ...form, name: text })}
@@ -134,12 +134,12 @@ export const ManageRanchProfileScreen: React.FC<ManageRanchProfileScreenProps> =
             />
 
             <View style={{ marginBottom: Spacing.xl }}>
-              <Text style={{ 
-                fontFamily: 'DMSans-Medium', 
-                fontSize: Typography.fontSize.sm, 
+              <Text style={{
+                fontFamily: 'DMSans-Medium',
+                fontSize: Typography.fontSize.sm,
                 color: Colors.charcoalInk,
-                marginBottom: Spacing.sm 
-              }}>Ranch Currency</Text>
+                marginBottom: Spacing.sm
+              }}>Farm Currency</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.sm }}>
                 {currencies.map((c) => (
                   <PChip
@@ -204,9 +204,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.lg,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.primarySurface,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.softAsh,
+    borderBottomColor: Colors.border,
   },
   title: {
     fontFamily: 'PlayfairDisplay-Bold',

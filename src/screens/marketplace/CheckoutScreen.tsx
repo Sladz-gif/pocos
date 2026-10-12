@@ -55,7 +55,7 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ route, navigatio
       
       clearCart();
       Alert.alert('Success', 'Your order has been placed successfully!', [
-        { text: 'View Orders', onPress: () => navigation.navigate('OrdersStack' as any) },
+        { text: 'View Orders', onPress: () => navigation.navigate('OrdersStack' as never) },
         { text: 'Back to Home', onPress: () => navigation.navigate('BrowseHome') }
       ]);
     } catch (error) {
@@ -86,7 +86,10 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ route, navigatio
                 <Text style={styles.itemName}>{defaultAddress.city}, {defaultAddress.region}</Text>
               </View>
             ) : (
-              <TouchableOpacity onPress={() => navigation.navigate('ProfileStack' as any, { screen: 'DeliveryAddresses' })}>
+              <TouchableOpacity onPress={() => {
+                // @ts-ignore - Nested navigation
+                navigation.navigate('ProfileStack', { screen: 'DeliveryAddresses' });
+              }}>
                 <Text style={styles.addText}>+ Add Delivery Address</Text>
               </TouchableOpacity>
             )}
@@ -110,7 +113,10 @@ export const CheckoutScreen: React.FC<CheckoutScreenProps> = ({ route, navigatio
                 </Text>
               </View>
             ) : (
-              <TouchableOpacity onPress={() => navigation.navigate('ProfileStack' as any, { screen: 'PaymentMethods' })}>
+              <TouchableOpacity onPress={() => {
+                // @ts-ignore - Nested navigation
+                navigation.navigate('ProfileStack', { screen: 'PaymentMethods' });
+              }}>
                 <Text style={styles.addText}>+ Add Payment Method</Text>
               </TouchableOpacity>
             )}

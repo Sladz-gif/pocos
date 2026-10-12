@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Text,
+  ScrollView,
 } from 'react-native';
 import { Colors, Spacing, Radius, Typography } from '../../constants';
 import { Ionicons } from '@expo/vector-icons';
@@ -44,7 +45,9 @@ export function PModal({ visible, onClose, children, title }: ModalProps) {
                 <Ionicons name="close" size={24} color={Colors.charcoalInk} />
               </TouchableOpacity>
             </View>
-            {children}
+            <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
+              {children}
+            </ScrollView>
           </TouchableOpacity>
         </KeyboardAvoidingView>
       </View>
@@ -65,7 +68,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   content: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.primarySurface,
     borderTopLeftRadius: Radius.xl,
     borderTopRightRadius: Radius.xl,
     padding: Spacing.xl,
@@ -82,5 +85,8 @@ const styles = StyleSheet.create({
     fontFamily: 'PlayfairDisplay-Bold',
     fontSize: Typography.fontSize.xl,
     color: Colors.charcoalInk,
+  },
+  scrollContent: {
+    flex: 1,
   },
 });

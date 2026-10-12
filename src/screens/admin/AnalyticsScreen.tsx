@@ -58,43 +58,10 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ navigation }) 
     <ScrollView style={styles.content}>
       <View style={styles.metricsGrid}>
         <PCard style={styles.metricCard}>
-          <Text style={styles.metricLabel}>Total Revenue</Text>
-          <Text style={styles.metricValue}>GHS {current?.totalRevenue.toLocaleString() || '0'}</Text>
-          <View style={styles.trendRow}>
-            <Ionicons name="trending-up" size={16} color={Colors.successMoss} />
-            <Text style={styles.trendText}>+12% vs last month</Text>
-          </View>
-        </PCard>
-        <PCard style={styles.metricCard}>
           <Text style={styles.metricLabel}>Total Animals</Text>
           <Text style={styles.metricValue}>{current?.totalAnimals || '0'}</Text>
           <Text style={styles.metricSubtext}>{current?.totalPregnancies || '0'} active pregnancies</Text>
         </PCard>
-      </View>
-
-      <View style={styles.chartSection}>
-        <Text style={styles.sectionTitle}>Revenue Growth</Text>
-        {revenueData.length > 0 ? (
-          <View style={styles.chartWrapper}>
-            <LineChart
-              data={revenueData}
-              width={screenWidth - Spacing.xl * 4}
-              height={200}
-              color={Colors.primaryRust}
-              thickness={3}
-              dataPointsColor={Colors.deepPlum}
-              noOfSections={4}
-              yAxisTextStyle={styles.axisText}
-              xAxisLabelTextStyle={styles.axisText}
-              hideRules
-              curved
-            />
-          </View>
-        ) : (
-          <View style={styles.emptyChart}>
-            <Text style={styles.emptyText}>Not enough data for chart</Text>
-          </View>
-        )}
       </View>
 
       <View style={styles.chartSection}>
@@ -131,7 +98,7 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ navigation }) 
             </View>
           </View>
           <Text style={styles.statValue}>
-            {current && (current.pendingTasks + current.completedTasks) > 0 
+            {current && (current.pendingTasks + current.completedTasks) > 0
               ? Math.round((current.completedTasks / (current.pendingTasks + current.completedTasks)) * 100)
               : 0}%
           </Text>
@@ -162,10 +129,6 @@ export const AnalyticsScreen: React.FC<AnalyticsScreenProps> = ({ navigation }) 
                     <PBadge text="SNAPSHOT" variant="neutral" />
                   </View>
                   <View style={styles.historyGrid}>
-                    <View style={styles.historyStat}>
-                      <Text style={styles.hStatVal}>GHS {s.totalRevenue}</Text>
-                      <Text style={styles.hStatLab}>Revenue</Text>
-                    </View>
                     <View style={styles.historyStat}>
                       <Text style={styles.hStatVal}>{s.totalAnimals}</Text>
                       <Text style={styles.hStatLab}>Animals</Text>
@@ -328,7 +291,7 @@ const styles = StyleSheet.create({
   },
   chartSection: {
     marginTop: Spacing.xl,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.primarySurface,
     padding: Spacing.lg,
     borderRadius: Radius.lg,
     ...Shadows.sm,

@@ -7,6 +7,7 @@ import { PCard, PButton } from '../../components/ui';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { AdminStackParamList } from '../../navigation/types';
 import { useAuthStore } from '../../store/authStore';
+import { Logo } from '../../components/Logo';
 
 type AdminPanelHomeScreenProps = {
   navigation: StackNavigationProp<AdminStackParamList, 'AdminPanelHome'>;
@@ -19,16 +20,16 @@ export const AdminPanelHomeScreen: React.FC<AdminPanelHomeScreenProps> = ({ navi
   const handleLogout = () => {
     Alert.alert(
       'Logout',
-      'Are you sure you want to log out of your ranch account?',
+      'Are you sure you want to log out of your farm account?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Logout', 
+        {
+          text: 'Logout',
           style: 'destructive',
           onPress: () => {
             navigation.getParent()?.goBack();
             logout();
-          } 
+          }
         },
       ]
     );
@@ -61,7 +62,7 @@ export const AdminPanelHomeScreen: React.FC<AdminPanelHomeScreenProps> = ({ navi
             </View>
             <Text style={styles.staffName}>{user?.name}</Text>
             <Text style={styles.staffRole}>
-              {user?.role === 'super_admin' ? 'Admin' : 'Ranch Staff'} • {ranch?.name}
+              {user?.role === 'super_admin' ? 'Admin' : 'Farm Staff'} • {ranch?.name}
             </Text>
           </View>
 
@@ -99,14 +100,22 @@ export const AdminPanelHomeScreen: React.FC<AdminPanelHomeScreenProps> = ({ navi
         <View style={{ width: 28 }} />
       </View>
       <ScrollView style={styles.content}>
+        <View style={styles.ranchHeader}>
+          <Logo size="medium" showText={false} />
+          <View style={styles.ranchInfo}>
+            <Text style={styles.ranchName}>{ranch?.name}</Text>
+            <Text style={styles.ranchCode}>{ranch?.code}</Text>
+          </View>
+        </View>
+
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Ranch Management</Text>
+          <Text style={styles.sectionTitle}>Farm Management</Text>
           <PCard style={styles.menuItem} onPress={() => navigation.navigate('ManageRanchProfile')}>
             <View style={styles.menuIcon}>
               <Ionicons name="business-outline" size={24} color={Colors.primaryRust} />
             </View>
             <View style={styles.menuText}>
-              <Text style={styles.menuTitle}>Ranch Profile</Text>
+              <Text style={styles.menuTitle}>Farm Profile</Text>
               <Text style={styles.menuSubtitle}>Branding, location, and contact info</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={Colors.mutedSienna} />
@@ -156,7 +165,7 @@ export const AdminPanelHomeScreen: React.FC<AdminPanelHomeScreenProps> = ({ navi
             <Ionicons name="chevron-forward" size={20} color={Colors.mutedSienna} />
           </PCard>
 
-          <PCard style={styles.menuItem} onPress={() => navigation.navigate('DeviceHealthCheck')}>
+          {/* <PCard style={styles.menuItem} onPress={() => navigation.navigate('DeviceHealthCheck')}>
             <View style={styles.menuIcon}>
               <Ionicons name="hardware-chip-outline" size={24} color={Colors.primaryRust} />
             </View>
@@ -165,7 +174,7 @@ export const AdminPanelHomeScreen: React.FC<AdminPanelHomeScreenProps> = ({ navi
               <Text style={styles.menuSubtitle}>Monitor Jetson Nano devices and camera units</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={Colors.mutedSienna} />
-          </PCard>
+          </PCard> */}
         </View>
 
         <View style={styles.section}>
@@ -226,9 +235,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.lg,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.primarySurface,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.softAsh,
+    borderBottomColor: Colors.border,
   },
   title: {
     fontFamily: 'PlayfairDisplay-Bold',
@@ -238,6 +247,31 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: Spacing.xl,
+  },
+  ranchHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.xl,
+    padding: Spacing.lg,
+    backgroundColor: Colors.primarySurface,
+    borderRadius: Radius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  ranchInfo: {
+    marginLeft: Spacing.lg,
+    flex: 1,
+  },
+  ranchName: {
+    fontFamily: 'PlayfairDisplay-Bold',
+    fontSize: Typography.fontSize.xl,
+    color: Colors.charcoalInk,
+    marginBottom: Spacing.xs,
+  },
+  ranchCode: {
+    fontFamily: 'DMMono-Regular',
+    fontSize: Typography.fontSize.sm,
+    color: Colors.mutedSienna,
   },
   section: {
     marginBottom: Spacing.xl,
@@ -283,11 +317,11 @@ const styles = StyleSheet.create({
   staffInfoCard: {
     alignItems: 'center',
     padding: Spacing['2xl'],
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.primarySurface,
     borderRadius: Radius.xl,
     marginBottom: Spacing.xl,
     borderWidth: 1,
-    borderColor: Colors.softAsh,
+    borderColor: Colors.border,
   },
   avatarPlaceholder: {
     width: 80,

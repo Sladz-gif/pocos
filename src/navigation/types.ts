@@ -12,10 +12,10 @@ export type AuthStackParamList = {
 
 export type RanchTabParamList = {
   HomeStack: NavigatorScreenParams<HomeStackParamList>;
-  HerdStack: NavigatorScreenParams<HerdStackParamList>;
+  FlockStack: NavigatorScreenParams<FlockStackParamList>;
   TasksStack: NavigatorScreenParams<TasksStackParamList>;
   ChatStack: NavigatorScreenParams<ChatStackParamList>;
-  StoreStack: NavigatorScreenParams<StoreStackParamList>;
+  Settings: undefined;
 };
 
 export type HomeStackParamList = {
@@ -24,14 +24,13 @@ export type HomeStackParamList = {
   AdminPanel: undefined; // Modal stack entry
 };
 
-export type HerdStackParamList = {
-  Herd: undefined;
+export type FlockStackParamList = {
+  Flock: undefined;
   AnimalDetail: { id: string };
   AddAnimal: { animalType?: string };
   AncestryTree: { id: string };
   ProfileDetail: { id: string };
   BirdCount: { profileId: string } | undefined;
-  BirdCountHistory: { profileId: string } | undefined;
   AddBirdProfile: { profileId: string } | undefined;
   BirdProfileDetail: { id: string };
   CreateProfile: undefined;
@@ -42,21 +41,11 @@ export type TasksStackParamList = {
   TaskBoard: undefined;
   TaskDetail: { id: string };
   CreateTask: undefined;
-  TaskHistory: undefined;
 };
 
 export type ChatStackParamList = {
   ChatHome: undefined;
   Conversation: { id: string };
-};
-
-export type StoreStackParamList = {
-  StoreManage: undefined;
-  StoreListingDetail: { id: string };
-  AddListing: undefined;
-  Orders: undefined;
-  Discounts: undefined;
-  AddDiscount: undefined;
 };
 
 export type AdminStackParamList = {
@@ -70,6 +59,7 @@ export type AdminStackParamList = {
   ProfileHome: undefined;
   NotificationSettings: undefined;
   HelpSupport: undefined;
+  PricingPlans: undefined;
 };
 
 export type MarketplaceTabParamList = {

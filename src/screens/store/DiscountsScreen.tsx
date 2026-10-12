@@ -76,7 +76,7 @@ export const DiscountsScreen: React.FC<DiscountsScreenProps> = ({ navigation }) 
           <Ionicons name="arrow-back" size={24} color={Colors.charcoalInk} />
         </TouchableOpacity>
         <Text style={styles.title}>Promotions</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('AddDiscount' as any)}>
+        <TouchableOpacity onPress={() => navigation.navigate('AddDiscount' as never)}>
           <Ionicons name="add" size={24} color={Colors.primaryRust} />
         </TouchableOpacity>
       </View>

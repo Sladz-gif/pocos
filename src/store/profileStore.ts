@@ -35,7 +35,7 @@ export const useProfileStore = create<ProfileStore>((set, get) => ({
         .order('created_at', { ascending: false });
       
       if (error) {
-        console.log('Profiles table may not exist yet, using local state');
+        // console.log('Profiles table may not exist yet, using local state');
         set({ isLoading: false });
         return;
       }
@@ -71,7 +71,7 @@ export const useProfileStore = create<ProfileStore>((set, get) => ({
       const { error } = await supabase.from('profiles').insert(profile);
       
       if (error) {
-        console.log('Profiles table may not exist yet, adding to local state only');
+        // console.log('Profiles table may not exist yet, adding to local state only');
         // Add to local state even if DB fails
         const newProfile: Profile = {
           id: profile.id,

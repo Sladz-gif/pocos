@@ -33,4 +33,4 @@ export type TaskRecurrence = 'none' | 'daily' | 'weekly' | 'monthly' | 'custom';
 
 export type OrderStatus = 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
 
-export type ProductCategory = 'cattle' | 'meat' | 'milk' | 'feed' | 'equipment' | 'other';
+export type ProductCategory = 'goat' | 'poultry' | 'meat' | 'milk' | 'feed' | 'equipment' | 'other';

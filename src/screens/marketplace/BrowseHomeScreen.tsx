@@ -42,7 +42,8 @@ export const BrowseHomeScreen: React.FC<BrowseHomeScreenProps> = ({ navigation, 
   const handleProductPress = (item: any) => {
     if (showAsPreview) {
       // In staff preview mode, we navigate to the store management version of the detail screen
-      navigation.navigate('StoreListingDetail' as any, { id: item.id });
+      // @ts-ignore - Dynamic navigation for preview mode
+      navigation.navigate('StoreListingDetail', { id: item.id });
     } else {
       navigation.navigate('ProductDetail', { id: item.id });
     }
@@ -99,7 +100,7 @@ export const BrowseHomeScreen: React.FC<BrowseHomeScreenProps> = ({ navigation, 
       <View style={styles.ranchOverlay}>
         <Text style={styles.ranchName}>{item.name}</Text>
         <View style={styles.ranchLocationRow}>
-          <Ionicons name="location" size={12} color="#FFFFFF" />
+          <Ionicons name="location" size={12} color={Colors.primarySurface} />
           <Text style={styles.ranchLocation}>{item.location}</Text>
         </View>
       </View>
@@ -117,7 +118,7 @@ export const BrowseHomeScreen: React.FC<BrowseHomeScreenProps> = ({ navigation, 
           {isBuyer && (
             <TouchableOpacity 
               style={styles.cartButton} 
-              onPress={() => navigation.navigate('Cart' as any)}
+              onPress={() => navigation.navigate('Cart' as never)}
             >
               <Ionicons name="cart-outline" size={24} color={Colors.primaryRust} />
               {cart && cart.length > 0 && (
@@ -135,7 +136,7 @@ export const BrowseHomeScreen: React.FC<BrowseHomeScreenProps> = ({ navigation, 
             <Ionicons name="search" size={20} color={Colors.mutedSienna} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search cattle, meat, milk..."
+              placeholder="Search goat, poultry, meat, milk..."
               placeholderTextColor={Colors.mutedSienna}
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -188,7 +189,7 @@ export const BrowseHomeScreen: React.FC<BrowseHomeScreenProps> = ({ navigation, 
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Top Listings</Text>
             {!showAsPreview && (
-              <TouchableOpacity onPress={() => navigation.navigate('AllProducts' as any)}>
+              <TouchableOpacity onPress={() => navigation.navigate('AllProducts' as never)}>
                 <Text style={styles.seeAllText}>See All</Text>
               </TouchableOpacity>
             )}
@@ -230,12 +231,12 @@ const styles = StyleSheet.create({
   locationSelector: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.primarySurface,
     paddingHorizontal: Spacing.sm,
     paddingVertical: 6,
     borderRadius: Radius.full,
     borderWidth: 1,
-    borderColor: Colors.softAsh,
+    borderColor: Colors.border,
   },
   locationText: {
     fontFamily: 'DMSans-Medium',
@@ -247,11 +248,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.primarySurface,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.softAsh,
+    borderColor: Colors.border,
   },
   cartBadge: {
     position: 'absolute',
@@ -265,7 +266,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cartBadgeText: {
-    color: '#FFFFFF',
+    color: Colors.primarySurface,
     fontSize: 8,
     fontFamily: 'DMSans-Bold',
   },
@@ -282,12 +283,12 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.primarySurface,
     paddingHorizontal: Spacing.md,
     height: 48,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Colors.softAsh,
+    borderColor: Colors.border,
   },
   searchInput: {
     flex: 1,
@@ -348,7 +349,7 @@ const styles = StyleSheet.create({
   ranchName: {
     fontFamily: 'DMSans-Bold',
     fontSize: Typography.fontSize.sm,
-    color: '#FFFFFF',
+    color: Colors.primarySurface,
   },
   ranchLocationRow: {
     flexDirection: 'row',
@@ -358,7 +359,7 @@ const styles = StyleSheet.create({
   ranchLocation: {
     fontFamily: 'DMSans-Regular',
     fontSize: 10,
-    color: '#FFFFFF',
+    color: Colors.primarySurface,
     marginLeft: 4,
   },
   emptyRanches: {
@@ -387,7 +388,7 @@ const styles = StyleSheet.create({
   productCard: {
     padding: 0,
     overflow: 'hidden',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.primarySurface,
   },
   productImageContainer: {
     height: 140,
@@ -409,7 +410,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.xs,
   },
   discountBadgeText: {
-    color: '#FFFFFF',
+    color: Colors.primarySurface,
     fontSize: 10,
     fontFamily: 'DMSans-Bold',
   },

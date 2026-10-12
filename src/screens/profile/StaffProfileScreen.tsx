@@ -60,17 +60,17 @@ export const StaffProfileScreen: React.FC<StaffProfileScreenProps> = ({ navigati
         </View>
 
         <View style={styles.infoSection}>
-          <Text style={styles.sectionTitle}>Ranch Information</Text>
+          <Text style={styles.sectionTitle}>Farm Information</Text>
           <PCard style={styles.infoCard}>
             <View style={styles.infoRow}>
-              <Ionicons name="business-outline" size={20} color={Colors.primaryRust} />
+              <Ionicons name="business-outline" size={20} color={Colors.accent} />
               <View style={styles.infoTextContainer}>
-                <Text style={styles.infoLabel}>Ranch Name</Text>
+                <Text style={styles.infoLabel}>Farm Name</Text>
                 <Text style={styles.infoValue}>{ranch?.name || 'Not Assigned'}</Text>
               </View>
             </View>
             <View style={[styles.infoRow, styles.lastRow]}>
-              <Ionicons name="location-outline" size={20} color={Colors.primaryRust} />
+              <Ionicons name="location-outline" size={20} color={Colors.accent} />
               <View style={styles.infoTextContainer}>
                 <Text style={styles.infoLabel}>Location</Text>
                 <Text style={styles.infoValue}>{ranch?.location || 'Not Specified'}</Text>
@@ -81,7 +81,7 @@ export const StaffProfileScreen: React.FC<StaffProfileScreenProps> = ({ navigati
           <Text style={styles.sectionTitle}>Account Details</Text>
           <PCard style={styles.infoCard}>
             <View style={styles.infoRow}>
-              <Ionicons name="key-outline" size={20} color={Colors.primaryRust} />
+              <Ionicons name="key-outline" size={20} color={Colors.accent} />
               <View style={styles.infoTextContainer}>
                 <Text style={styles.infoLabel}>Access Code</Text>
                 <Text style={styles.infoValue}>{user?.accessCode || 'N/A'}</Text>
@@ -89,14 +89,14 @@ export const StaffProfileScreen: React.FC<StaffProfileScreenProps> = ({ navigati
               </View>
             </View>
             <View style={styles.infoRow}>
-              <Ionicons name="mail-outline" size={20} color={Colors.primaryRust} />
+              <Ionicons name="mail-outline" size={20} color={Colors.accent} />
               <View style={styles.infoTextContainer}>
                 <Text style={styles.infoLabel}>Email</Text>
                 <Text style={styles.infoValue}>{user?.email || 'No email provided'}</Text>
               </View>
             </View>
             <View style={[styles.infoRow, styles.lastRow]}>
-              <Ionicons name="call-outline" size={20} color={Colors.primaryRust} />
+              <Ionicons name="call-outline" size={20} color={Colors.accent} />
               <View style={styles.infoTextContainer}>
                 <Text style={styles.infoLabel}>Phone</Text>
                 <Text style={styles.infoValue}>{user?.phone || 'Not linked'}</Text>
@@ -106,26 +106,64 @@ export const StaffProfileScreen: React.FC<StaffProfileScreenProps> = ({ navigati
 
           <Text style={styles.sectionTitle}>Preferences</Text>
           <PCard style={styles.infoCard}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.menuItem}
               onPress={() => navigation.navigate('NotificationSettings')}
             >
               <View style={styles.menuItemLeft}>
-                <Ionicons name="notifications-outline" size={22} color={Colors.primaryRust} />
+                <Ionicons name="notifications-outline" size={22} color={Colors.accent} />
                 <Text style={styles.menuItemText}>Notification Settings</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={Colors.softAsh} />
+              <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
             </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.menuItem, styles.lastRow]}
+            <TouchableOpacity
+              style={styles.menuItem}
               onPress={() => navigation.navigate('HelpSupport')}
             >
               <View style={styles.menuItemLeft}>
-                <Ionicons name="help-circle-outline" size={22} color={Colors.primaryRust} />
+                <Ionicons name="help-circle-outline" size={22} color={Colors.accent} />
                 <Text style={styles.menuItemText}>Help & Support</Text>
               </View>
-              <Ionicons name="chevron-forward" size={20} color={Colors.softAsh} />
+              <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
             </TouchableOpacity>
+            {(user?.role === 'super_admin' || user?.role === 'ranch_owner') && (
+              <>
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => {
+                    Alert.alert(
+                      'Generate Payment Code',
+                      'Generate a payment code for staff access?',
+                      [
+                        { text: 'Cancel', style: 'cancel' },
+                        {
+                          text: 'Generate',
+                          onPress: () => {
+                            Alert.alert('Payment Code Generated', 'Code: ABC123 - Share with staff');
+                          }
+                        }
+                      ]
+                    );
+                  }}
+                >
+                  <View style={styles.menuItemLeft}>
+                    <Ionicons name="card-outline" size={22} color={Colors.accent} />
+                    <Text style={styles.menuItemText}>Generate Payment Code</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.menuItem, styles.lastRow]}
+                  onPress={() => navigation.navigate('PricingPlans')}
+                >
+                  <View style={styles.menuItemLeft}>
+                    <Ionicons name="pricetag-outline" size={22} color={Colors.accent} />
+                    <Text style={styles.menuItemText}>Pricing Plans</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+                </TouchableOpacity>
+              </>
+            )}
           </PCard>
         </View>
 
@@ -134,7 +172,7 @@ export const StaffProfileScreen: React.FC<StaffProfileScreenProps> = ({ navigati
           <Text style={styles.logoutText}>Logout from App</Text>
         </TouchableOpacity>
         
-        <Text style={styles.footerText}>Pocos Ranch v1.0.0</Text>
+        <Text style={styles.footerText}>AmanA v1.0.0</Text>
         <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>
@@ -144,7 +182,7 @@ export const StaffProfileScreen: React.FC<StaffProfileScreenProps> = ({ navigati
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.paleParchment,
+    backgroundColor: Colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -152,9 +190,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.lg,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.primarySurface,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.softAsh,
+    borderBottomColor: Colors.border,
   },
   backButton: {
     padding: Spacing.xs,
@@ -162,41 +200,41 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: 'PlayfairDisplay-Bold',
     fontSize: Typography.fontSize.xl,
-    color: Colors.charcoalInk,
+    color: Colors.textPrimary,
   },
   content: {
     flex: 1,
   },
   profileSection: {
-    alignItems: 'center', 
+    alignItems: 'center',
     padding: Spacing['3xl'],
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.primarySurface,
     marginBottom: Spacing.md,
   },
   avatar: {
     width: 90,
     height: 90,
     borderRadius: 45,
-    backgroundColor: Colors.warmSand,
-    justifyContent: 'center', 
+    backgroundColor: Colors.secondarySurface,
+    justifyContent: 'center',
     alignItems: 'center',
     marginBottom: Spacing.md,
     borderWidth: 3,
-    borderColor: Colors.primaryRust,
+    borderColor: Colors.accent,
   },
   avatarText: {
     fontFamily: 'PlayfairDisplay-Bold',
     fontSize: 36,
-    color: Colors.primaryRust,
+    color: Colors.accent,
   },
   userName: {
     fontFamily: 'PlayfairDisplay-Bold',
     fontSize: Typography.fontSize['2xl'],
-    color: Colors.charcoalInk,
+    color: Colors.textPrimary,
     marginBottom: Spacing.xs,
   },
   roleBadge: {
-    backgroundColor: Colors.primaryRust,
+    backgroundColor: Colors.accent,
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: Radius.full,
@@ -204,7 +242,7 @@ const styles = StyleSheet.create({
   roleText: {
     fontFamily: 'DMSans-Bold',
     fontSize: 12,
-    color: '#FFFFFF',
+    color: Colors.primarySurface,
     textTransform: 'uppercase',
   },
   infoSection: {
@@ -213,7 +251,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: 'DMSans-Bold',
     fontSize: Typography.fontSize.sm,
-    color: Colors.mutedSienna,
+    color: Colors.textSecondary,
     textTransform: 'uppercase',
     marginTop: Spacing.xl,
     marginBottom: Spacing.sm,
@@ -228,7 +266,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: Spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.softAsh,
+    borderBottomColor: Colors.border,
   },
   lastRow: {
     borderBottomWidth: 0,
@@ -240,21 +278,21 @@ const styles = StyleSheet.create({
   infoLabel: {
     fontFamily: 'DMSans-Regular',
     fontSize: 10,
-    color: Colors.mutedSienna,
+    color: Colors.textSecondary,
     textTransform: 'uppercase',
   },
   infoValue: {
     fontFamily: 'DMSans-Medium',
     fontSize: Typography.fontSize.base,
-    color: Colors.charcoalInk,
+    color: Colors.textPrimary,
   },
   menuItem: {
     flexDirection: 'row',
-    alignItems: 'center', 
+    alignItems: 'center',
     justifyContent: 'space-between',
     padding: Spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.softAsh,
+    borderBottomColor: Colors.border,
   },
   menuItemLeft: {
     flexDirection: 'row',
@@ -262,14 +300,14 @@ const styles = StyleSheet.create({
   },
   menuItemText: {
     fontFamily: 'DMSans-Medium',
-    fontSize: Typography.fontSize.base, 
-    color: Colors.charcoalInk, 
+    fontSize: Typography.fontSize.base,
+    color: Colors.textPrimary,
     marginLeft: Spacing.lg,
   },
   helperText: {
     fontFamily: 'DMSans-Regular',
     fontSize: 10,
-    color: Colors.mutedSienna,
+    color: Colors.textSecondary,
     fontStyle: 'italic',
     marginTop: 2,
   },
@@ -277,23 +315,23 @@ const styles = StyleSheet.create({
     margin: Spacing.xl,
     padding: Spacing.lg,
     borderRadius: Radius.md,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.primarySurface,
     flexDirection: 'row',
-    alignItems: 'center', 
+    alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: Colors.softAsh,
+    borderColor: Colors.border,
     gap: Spacing.sm,
   },
   logoutText: {
     fontFamily: 'DMSans-Bold',
-    fontSize: Typography.fontSize.base, 
-    color: Colors.primaryRust,
+    fontSize: Typography.fontSize.base,
+    color: Colors.accent,
   },
   footerText: {
     textAlign: 'center',
     fontFamily: 'DMSans-Regular',
     fontSize: 10,
-    color: Colors.softAsh,
+    color: Colors.textSecondary,
   }
 });

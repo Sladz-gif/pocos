@@ -37,13 +37,13 @@ export const RanchOwnerLoginScreen: React.FC<RanchOwnerLoginScreenProps> = ({ na
 
         <View style={styles.header}>
           <Text style={styles.title}>Owner Login</Text>
-          <Text style={styles.subtitle}>Sign in with your email and password to manage your ranch.</Text>
+          <Text style={styles.subtitle}>Sign in with your email and password to manage your farm.</Text>
         </View>
 
         <View style={styles.form}>
           <PInput
             label="Email Address"
-            placeholder="owner@ranch.com"
+            placeholder="owner@farm.com"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -63,11 +63,11 @@ export const RanchOwnerLoginScreen: React.FC<RanchOwnerLoginScreenProps> = ({ na
             style={styles.submitButton}
           />
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.signupLink}
             onPress={() => navigation.navigate('RanchOwnerSignUp')}
           >
-            <Text style={styles.signupText}>New to Pocos? <Text style={styles.signupLinkText}>Create a Ranch</Text></Text>
+            <Text style={styles.signupText}>New to AmanA? <Text style={styles.signupLinkText}>Create a Farm</Text></Text>
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -78,7 +78,7 @@ export const RanchOwnerLoginScreen: React.FC<RanchOwnerLoginScreenProps> = ({ na
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.paleParchment,
+    backgroundColor: Colors.background,
   },
   content: {
     flex: 1,
@@ -96,12 +96,12 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: 'PlayfairDisplay-Bold',
     fontSize: Typography.fontSize['3xl'],
-    color: Colors.charcoalInk,
+    color: Colors.textPrimary,
   },
   subtitle: {
     fontFamily: 'DMSans-Regular',
     fontSize: Typography.fontSize.base,
-    color: Colors.mutedSienna,
+    color: Colors.textSecondary,
     marginTop: 8,
   },
   form: {
@@ -117,10 +117,10 @@ const styles = StyleSheet.create({
   signupText: {
     fontFamily: 'DMSans-Regular',
     fontSize: Typography.fontSize.sm,
-    color: Colors.mutedSienna,
+    color: Colors.textSecondary,
   },
   signupLinkText: {
     fontFamily: 'DMSans-Bold',
-    color: Colors.primaryRust,
+    color: Colors.accent,
   },
 });

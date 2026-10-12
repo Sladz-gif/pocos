@@ -1,34 +1,43 @@
 export const Colors = {
-  // Primary Palette
-  primaryRust: "#C1440E",
-  deepPlum: "#2B1349",
-  warmSand: "#F0E3C8",
-  antiqueGold: "#C78B2E",
-  charcoalInk: "#1D1814",
-  mutedSienna: "#8C5C3E",
-  paleParchment: "#FAF6EF",
-  softAsh: "#E8E0D4",
+  // Primary Palette - White & Green with Custom Accents
+  primaryGreen: "#204D38", // Primary green accent
+  deepBlack: "#111111", // Dark background/text
+  white: "#FFFFFF", // White surface
+  lightBeige: "#F5E6D0", // Light beige background
+  lightPink: "#F0CBBB", // Light pink accent
+  mediumPink: "#E7A99A", // Medium pink accent
+  dangerRed: "#C8361D", // Danger/error
+  gold: "#E2A028", // Warning/gold accent
 
   // Status Colors
-  successMoss: "#3A7D44",
-  alertAmber: "#D4821A",
-  dangerCrimson: "#B02020",
-  success: "#3A7D44",
-  danger: "#B02020",
-  error: "#B02020",
-  errorRed: "#B02020",
-  warning: "#D4821A",
-  info: "#4A90E2",
-  infoBlue: "#4A90E2",
+  success: "#204D38", // Green
+  warning: "#E2A028", // Gold
+  danger: "#C8361D", // Red
+  error: "#C8361D", // Red
+  info: "#204D38", // Green
 
-  // UI Semantic Mapping (Legacy compatibility if needed, but we should migrate)
-  background: "#FAF6EF", // paleParchment
-  primarySurface: "#F0E3C8", // warmSand
-  secondarySurface: "#E8E0D4", // softAsh
-  textPrimary: "#1D1814", // charcoalInk
-  textSecondary: "#8C5C3E", // mutedSienna
-  primaryAccent: "#C1440E", // primaryRust
-  border: "#E8E0D4", // softAsh
+  // UI Semantic Mapping
+  background: "#FFFFFF", // white
+  primarySurface: "#FFFFFF", // white
+  secondarySurface: "#F0F0F0", // light gray
+  tertiarySurface: "#E0E0E0", // medium gray
+  textPrimary: "#111111", // deepBlack
+  textSecondary: "#666666", // gray
+  border: "#E0E0E0", // light gray
+  accent: "#204D38", // primaryGreen
+
+  // Legacy aliases for backward compatibility
+  primaryRust: "#204D38", // Maps to green
+  deepPlum: "#111111", // Maps to black
+  warmSand: "#FFFFFF", // Maps to white
+  antiqueGold: "#E2A028", // Maps to gold
+  charcoalInk: "#111111", // Maps to black
+  mutedSienna: "#666666", // Maps to gray
+  paleParchment: "#FFFFFF", // Maps to white
+  softAsh: "#F0F0F0", // Maps to light gray
+  successMoss: "#204D38", // Maps to green
+  alertAmber: "#E2A028", // Maps to gold
+  dangerCrimson: "#C8361D", // Maps to red
 } as const;
 
 export type ColorKeys = keyof typeof Colors;

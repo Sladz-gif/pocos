@@ -1,21 +1,25 @@
-import React, { useState } from 'react';
+// MACHINE LEARNING / JETSON NANO - DISABLED
+// App is now for poultry and goats only
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { Colors, Spacing, Typography, Radius } from '../../constants';
 import { Ionicons } from '@expo/vector-icons';
 import { PCard, PButton, PInput, PDeleteModal } from '../../components/ui';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { HerdStackParamList } from '../../navigation/types';
+import { FlockStackParamList } from '../../navigation/types';
 import { useProfileStore } from '../../store/profileStore';
+import { useAuthStore } from '../../store/authStore';
 import { v4 as uuidv4 } from 'uuid';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { format } from 'date-fns';
 
-// Hardcoded device address for Jetson Nano
-const JETSON_DEVICE_ADDRESS = '989347d6c29e5e8b';
+// // Hardcoded device address for Jetson Nano
+// const JETSON_DEVICE_ADDRESS = '989347d6c29e5e8b';
 
 type BirdProfileDetailScreenProps = {
-  navigation: StackNavigationProp<HerdStackParamList, 'BirdProfileDetail'>;
+  navigation: StackNavigationProp<FlockStackParamList, 'BirdProfileDetail'>;
   route: { params: { id: string } };
 };
 
@@ -29,15 +33,109 @@ interface CageFormData {
 }
 
 export const BirdProfileDetailScreen: React.FC<BirdProfileDetailScreenProps> = ({ navigation, route }) => {
-  const { profiles, updateProfile } = useProfileStore();
+  const { profiles, updateProfile, fetchProfiles } = useProfileStore();
+  const { ranch } = useAuthStore();
   const profile = profiles.find(p => p.id === route.params.id);
-  
+
   const [cages, setCages] = useState<CageFormData[]>([]);
+
+  // Load cages from profile custom fields
+  useEffect(() => {
+    if (profile && profile.customFields) {
+      const cagesField = profile.customFields.find((f: any) => f.key === 'cages');
+      if (cagesField) {
+        try {
+          const parsedCages = JSON.parse(cagesField.value);
+          setCages(parsedCages);
+        } catch (e) {
+          console.error('Error parsing cages:', e);
+        }
+      }
+    }
+  }, [profile]);
+
+  // Refresh profiles when screen gains focus
+  useFocusEffect(
+    useCallback(() => {
+      if (ranch?.id) {
+        fetchProfiles(ranch.id);
+      }
+    }, [ranch?.id, fetchProfiles])
+  );
   const [showAddCage, setShowAddCage] = useState(false);
   const [editingCage, setEditingCage] = useState<CageFormData | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [cageToDelete, setCageToDelete] = useState<string | null>(null);
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+
+  // Save cages to profile when they change
+  const saveCagesToProfile = async (newCages: CageFormData[]) => {
+    if (profile) {
+      const existingFields = profile.customFields || [];
+      const otherFields = existingFields.filter((f: any) => f.key !== 'cages');
+      const updatedFields = [...otherFields, { key: 'cages', value: JSON.stringify(newCages) }];
+      try {
+        await updateProfile(profile.id, { customFields: updatedFields } as any);
+        // Refresh profiles after update
+        if (ranch?.id) {
+          await fetchProfiles(ranch.id);
+        }
+      } catch (error) {
+        console.error('Error saving cages to profile:', error);
+        Alert.alert('Error', 'Failed to save cage. Please try again.');
+        throw error;
+      }
+    }
+  };
+
+  const handleSaveCage = async () => {
+    if (!editingCage) return;
+
+    if (!editingCage.cageName.trim()) {
+      Alert.alert('Error', 'Cage name is required');
+      return;
+    }
+    if (!editingCage.birdCount.trim()) {
+      Alert.alert('Error', 'Bird count is required');
+      return;
+    }
+    if (!editingCage.feedingType.trim()) {
+      Alert.alert('Error', 'Feeding type is required');
+      return;
+    }
+
+    const existingIndex = cages.findIndex(c => c.id === editingCage.id);
+    let updatedCages: CageFormData[];
+    if (existingIndex >= 0) {
+      updatedCages = [...cages];
+      updatedCages[existingIndex] = editingCage;
+    } else {
+      updatedCages = [...cages, editingCage];
+    }
+
+    // Update local state first
+    setCages(updatedCages);
+
+    // Then try to save to backend
+    try {
+      await saveCagesToProfile(updatedCages);
+      setShowAddCage(false);
+      setEditingCage(null);
+    } catch (error) {
+      // If save failed, revert local state
+      setCages(cages);
+    }
+  };
+
+  const confirmDeleteCage = async () => {
+    if (cageToDelete) {
+      const updatedCages = cages.filter(c => c.id !== cageToDelete);
+      setCages(updatedCages);
+      await saveCagesToProfile(updatedCages);
+      setShowDeleteModal(false);
+      setCageToDelete(null);
+    }
+  };
 
   const handleAddCage = () => {
     const newCage: CageFormData = {
@@ -55,46 +153,9 @@ export const BirdProfileDetailScreen: React.FC<BirdProfileDetailScreenProps> = (
     setShowAddCage(true);
   };
 
-  const handleSaveCage = () => {
-    if (!editingCage) return;
-
-    if (!editingCage.cageName.trim()) {
-      Alert.alert('Error', 'Cage name is required');
-      return;
-    }
-    if (!editingCage.birdCount.trim()) {
-      Alert.alert('Error', 'Bird count is required');
-      return;
-    }
-    if (!editingCage.feedingType.trim()) {
-      Alert.alert('Error', 'Feeding type is required');
-      return;
-    }
-
-    const existingIndex = cages.findIndex(c => c.id === editingCage.id);
-    if (existingIndex >= 0) {
-      const updated = [...cages];
-      updated[existingIndex] = editingCage;
-      setCages(updated);
-    } else {
-      setCages([...cages, editingCage]);
-    }
-
-    setShowAddCage(false);
-    setEditingCage(null);
-  };
-
   const handleDeleteCage = (id: string) => {
     setCageToDelete(id);
     setShowDeleteModal(true);
-  };
-
-  const confirmDeleteCage = () => {
-    if (cageToDelete) {
-      setCages(cages.filter(c => c.id !== cageToDelete));
-      setShowDeleteModal(false);
-      setCageToDelete(null);
-    }
   };
 
   const renderCageCard = (cage: CageFormData) => (
@@ -260,21 +321,21 @@ export const BirdProfileDetailScreen: React.FC<BirdProfileDetailScreenProps> = (
             </Text>
           </View>
           
-          <View style={styles.deviceSection}>
+          {/* <View style={styles.deviceSection}>
             <View style={styles.deviceHeader}>
               <Text style={styles.infoLabel}>Device Address:</Text>
             </View>
             <Text style={styles.deviceAddressText}>
               {JETSON_DEVICE_ADDRESS} (Jetson Nano)
             </Text>
-          </View>
+          </View> */}
         </View>
 
         <View style={styles.cagesSection}>
           <View style={styles.cagesHeader}>
             <Text style={styles.cagesTitle}>Cages/Coups</Text>
             <TouchableOpacity style={styles.addButton} onPress={handleAddCage}>
-              <Ionicons name="add" size={20} color="#FFFFFF" />
+              <Ionicons name="add" size={20} color={Colors.primarySurface} />
               <Text style={styles.addButtonText}>Add Cage</Text>
             </TouchableOpacity>
           </View>
@@ -332,8 +393,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.softAsh,
-    backgroundColor: '#FFFFFF',
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.primarySurface,
   },
   title: {
     fontFamily: 'PlayfairDisplay-Bold',
@@ -351,11 +412,11 @@ const styles = StyleSheet.create({
   },
   quickActionButton: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.primarySurface,
     borderRadius: Radius.lg,
     padding: Spacing.lg,
     borderWidth: 1,
-    borderColor: Colors.softAsh,
+    borderColor: Colors.border,
     alignItems: 'center',
     gap: Spacing.sm,
   },
@@ -376,12 +437,12 @@ const styles = StyleSheet.create({
     color: Colors.mutedSienna,
   },
   profileInfo: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.primarySurface,
     borderRadius: Radius.lg,
     padding: Spacing.lg,
     marginBottom: Spacing.xl,
     borderWidth: 1,
-    borderColor: Colors.softAsh,
+    borderColor: Colors.border,
   },
   infoRow: {
     flexDirection: 'row',
@@ -452,7 +513,7 @@ const styles = StyleSheet.create({
   deviceSaveText: {
     fontFamily: 'DMSans-Medium',
     fontSize: Typography.fontSize.base,
-    color: '#FFFFFF',
+    color: Colors.primarySurface,
   },
   cagesSection: {
     flex: 1,
@@ -480,7 +541,7 @@ const styles = StyleSheet.create({
   addButtonText: {
     fontFamily: 'DMSans-Medium',
     fontSize: Typography.fontSize.sm,
-    color: '#FFFFFF',
+    color: Colors.primarySurface,
   },
   cageCard: {
     marginBottom: Spacing.md,
@@ -559,7 +620,7 @@ const styles = StyleSheet.create({
   addFirstButtonText: {
     fontFamily: 'DMSans-Medium',
     fontSize: Typography.fontSize.sm,
-    color: '#FFFFFF',
+    color: Colors.primarySurface,
   },
   modal: {
     position: 'absolute',
@@ -573,7 +634,7 @@ const styles = StyleSheet.create({
     padding: Spacing.xl,
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.primarySurface,
     borderRadius: Radius.lg,
     padding: Spacing.xl,
     width: '100%',

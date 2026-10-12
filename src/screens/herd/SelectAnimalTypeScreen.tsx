@@ -4,20 +4,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, Typography, Radius } from '../../constants';
 import { Ionicons } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { HerdStackParamList } from '../../navigation/types';
+import { FlockStackParamList } from '../../navigation/types';
 import { AnimalType } from '../../types/livestock';
 
 type SelectAnimalTypeScreenProps = {
-  navigation: StackNavigationProp<HerdStackParamList, 'SelectAnimalType'>;
+  navigation: StackNavigationProp<FlockStackParamList, 'SelectAnimalType'>;
 };
 
 const ANIMAL_TYPES: { type: AnimalType; label: string; icon: string; color: string }[] = [
-  { type: 'cattle', label: 'Cattle', icon: 'cow', color: '#8B4513' },
-  { type: 'sheep', label: 'Sheep', icon: 'cloud', color: '#D3D3D3' },
-  { type: 'goat', label: 'Goat', icon: 'triangle', color: '#A0522D' },
-  { type: 'horse', label: 'Horse', icon: 'paw', color: '#654321' },
-  { type: 'donkey', label: 'Donkey', icon: 'body', color: '#696969' },
-  { type: 'bird', label: 'Bird', icon: 'egg', color: '#FF6347' },
+  { type: 'bird', label: 'Bird', icon: 'egg', color: Colors.accent },
 ];
 
 export const SelectAnimalTypeScreen: React.FC<SelectAnimalTypeScreenProps> = ({ navigation }) => {
@@ -74,8 +69,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.softAsh,
-    backgroundColor: '#FFFFFF',
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.primarySurface,
   },
   title: {
     fontFamily: 'PlayfairDisplay-Bold',
@@ -100,13 +95,13 @@ const styles = StyleSheet.create({
   },
   typeCard: {
     width: '48%',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.primarySurface,
     borderRadius: Radius.lg,
     padding: Spacing.lg,
     marginBottom: Spacing.md,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: Colors.softAsh,
+    borderColor: Colors.border,
   },
   iconContainer: {
     width: 80,

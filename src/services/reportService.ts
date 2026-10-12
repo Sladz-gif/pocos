@@ -25,7 +25,7 @@ class ReportService {
 
   async generatePDF(data: any[], filename: string): Promise<string> {
     // In a real implementation, this would use a PDF generation library
-    console.log('Generating PDF:', filename);
+    // console.log('Generating PDF:', filename);
     return 'PDF content placeholder';
   }
 
@@ -92,7 +92,7 @@ class ReportService {
         throw new Error('Unsupported format');
     }
 
-    console.log('Exporting report:', { filename, format, contentLength: content.length });
+    // console.log('Exporting report:', { filename, format, contentLength: content.length });
   }
 }
 

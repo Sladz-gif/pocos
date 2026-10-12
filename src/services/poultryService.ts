@@ -60,7 +60,7 @@ class PoultryService {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'poultry_live_status', filter: 'id=eq.current_status' },
         (payload) => {
-          console.log('Live status update received:', payload);
+          // console.log('Live status update received:', payload);
           if (payload.new) {
             store.setLiveStatus(payload.new as PoultryLiveStatus);
           }
@@ -70,7 +70,7 @@ class PoultryService {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'bird_counts' },
         (payload) => {
-          console.log('New bird count log received:', payload);
+          // console.log('New bird count log received:', payload);
           if (payload.new) {
             store.addHistoryItem(payload.new as BirdCount);
           }

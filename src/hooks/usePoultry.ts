@@ -9,7 +9,7 @@ export const usePoultry = () => {
     // Set up a 15-minute polling interval as a backup or to refresh the history list
     // 15 minutes = 15 * 60 * 1000 ms = 900,000 ms
     const interval = setInterval(() => {
-      console.log('15-minute periodic refresh for poultry data');
+      // console.log('15-minute periodic refresh for poultry data');
       poultryService.refresh();
     }, 900000);
 

@@ -131,7 +131,7 @@ export const ChatHomeScreen: React.FC<ChatHomeScreenProps> = ({ navigation }) =>
           <View style={styles.chatHeader}>
             <Text style={styles.chatName}>{item.name}</Text>
             <View style={[styles.roleBadge, { backgroundColor: item.role === 'super_admin' ? Colors.primaryRust : Colors.warmSand }]}>
-              <Text style={[styles.roleText, { color: item.role === 'super_admin' ? '#FFFFFF' : Colors.primaryRust }]}>
+              <Text style={[styles.roleText, { color: item.role === 'super_admin' ? Colors.primarySurface : Colors.primaryRust }]}>
                 {item.role === 'super_admin' ? 'Admin' : item.role.replace('_', ' ')}
               </Text>
             </View>
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
     color: Colors.primaryRust,
   },
   activeTabText: {
-    color: '#FFFFFF',
+    color: Colors.primarySurface,
   },
   searchContainer: {
     paddingHorizontal: Spacing.xl,
@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.primarySurface,
     paddingHorizontal: Spacing.md,
     height: 44,
     borderRadius: Radius.md,
@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: Colors.primaryRust,
     borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderColor: Colors.primarySurface,
   },
   chatInfo: {
     flex: 1,
@@ -384,7 +384,7 @@ const styles = StyleSheet.create({
   newTagText: {
     fontFamily: 'DMSans-Bold',
     fontSize: 8,
-    color: '#FFFFFF',
+    color: Colors.primarySurface,
   },
   chatName: {
     fontFamily: 'DMSans-Bold',
@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
   unreadText: {
     fontFamily: 'DMSans-Bold',
     fontSize: 10,
-    color: '#FFFFFF',
+    color: Colors.primarySurface,
   },
   modalInput: {
     backgroundColor: Colors.paleParchment,

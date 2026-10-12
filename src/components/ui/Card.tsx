@@ -19,11 +19,11 @@ export function PCard({
 }: CardProps) {
   const getContainerStyle = (): ViewStyle => {
     const baseStyle: ViewStyle = {
-      backgroundColor: '#FFFFFF',
+      backgroundColor: Colors.primarySurface,
       borderRadius: Radius.lg,
       padding,
       borderWidth: 1,
-      borderColor: Colors.softAsh,
+      borderColor: Colors.border,
     };
 
     switch (variant) {

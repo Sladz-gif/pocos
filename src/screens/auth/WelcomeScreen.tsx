@@ -6,6 +6,7 @@ import { AuthStackParamList } from '../../navigation/types';
 import { Colors, Spacing, Typography, Radius } from '../../constants';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { Logo } from '../../components/Logo';
 
 type WelcomeScreenProps = {
   navigation: StackNavigationProp<AuthStackParamList, 'Welcome'>;
@@ -33,7 +34,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
 
     if (tapCountRef.current >= 3) {
       tapCountRef.current = 0;
-      navigation.navigate('DeviceHealthCheck');
+      // navigation.navigate('DeviceHealthCheck');
     }
   };
 
@@ -47,45 +48,31 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
           <View style={styles.content}>
             <View style={styles.header}>
               <Pressable onPress={handleLogoTap} delayLongPress={0} hitSlop={8}>
-                <Text style={styles.logoText}>Animal</Text>
+                <Logo size="large" showText={true} />
               </Pressable>
-              <Text style={styles.tagline}>Every herd. Every story.</Text>
+              <Text style={styles.tagline}>Poultry Management</Text>
             </View>
 
             <View style={styles.roleContainer}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.roleCard}
-                onPress={() => navigation.navigate('RanchLogin')}
+                onPress={() => navigation.navigate('RanchOwnerLogin')}
               >
-                <View style={[styles.iconCircle, { backgroundColor: 'rgba(255,255,255,0.1)' }]}>
-                  <Ionicons name="home" size={32} color={Colors.warmSand} />
+                <View style={[styles.iconCircle, { backgroundColor: Colors.primaryGreen + '20' }]}>
+                  <Ionicons name="home" size={32} color={Colors.primaryGreen} />
                 </View>
                 <View style={styles.roleTextContainer}>
-                  <Text style={styles.roleTitle}>I run a ranch</Text>
-                  <Text style={styles.roleSubtitle}>Manage your herd, tasks, and team</Text>
+                  <Text style={styles.roleTitle}>I run a farm</Text>
+                  <Text style={styles.roleSubtitle}>Manage your flock, tasks, and team</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={24} color="rgba(255,255,255,0.3)" />
-              </TouchableOpacity>
-
-              <TouchableOpacity 
-                style={styles.roleCard}
-                onPress={() => navigation.navigate('ConsumerSignUp')}
-              >
-                <View style={[styles.iconCircle, { backgroundColor: 'rgba(255,255,255,0.1)' }]}>
-                  <Ionicons name="cart" size={32} color={Colors.warmSand} />
-                </View>
-                <View style={styles.roleTextContainer}>
-                  <Text style={styles.roleTitle}>I want to buy</Text>
-                  <Text style={styles.roleSubtitle}>Discover and order quality ranch products</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={24} color="rgba(255,255,255,0.3)" />
+                <Ionicons name="chevron-forward" size={24} color={Colors.mutedSienna} />
               </TouchableOpacity>
             </View>
 
             <View style={styles.footer}>
               <TouchableOpacity onPress={() => navigation.navigate('RanchOwnerSignUp')}>
                 <Text style={styles.footerText}>
-                  Need to register your ranch? <Text style={styles.footerLink}>Create Account</Text>
+                  Need to register your farm? <Text style={styles.footerLink}>Create Account</Text>
                 </Text>
               </TouchableOpacity>
             </View>
@@ -99,7 +86,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.paleParchment,
+    backgroundColor: Colors.background,
   },
   safeArea: {
     flex: 1,
@@ -117,16 +104,10 @@ const styles = StyleSheet.create({
     marginTop: Spacing['4xl'],
     alignItems: 'center',
   },
-  logoText: {
-    fontFamily: 'PlayfairDisplay-Bold',
-    fontSize: 64,
-    color: Colors.deepPlum,
-    marginBottom: Spacing.xs,
-  },
   tagline: {
     fontFamily: 'DMSans-Medium',
     fontSize: Typography.fontSize.base,
-    color: Colors.mutedSienna,
+    color: Colors.textSecondary,
     letterSpacing: 2,
     textTransform: 'uppercase',
   },
@@ -136,12 +117,12 @@ const styles = StyleSheet.create({
   roleCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.primarySurface,
     padding: Spacing.xl,
     borderRadius: Radius.xl,
     borderWidth: 1,
-    borderColor: Colors.softAsh,
-    shadowColor: Colors.charcoalInk,
+    borderColor: Colors.border,
+    shadowColor: Colors.deepBlack,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
@@ -161,13 +142,13 @@ const styles = StyleSheet.create({
   roleTitle: {
     fontFamily: 'PlayfairDisplay-Bold',
     fontSize: Typography.fontSize.xl,
-    color: Colors.charcoalInk,
+    color: Colors.textPrimary,
     marginBottom: 4,
   },
   roleSubtitle: {
     fontFamily: 'DMSans-Regular',
     fontSize: Typography.fontSize.sm,
-    color: Colors.mutedSienna,
+    color: Colors.textSecondary,
   },
   footer: {
     alignItems: 'center',
@@ -176,10 +157,10 @@ const styles = StyleSheet.create({
   footerText: {
     fontFamily: 'DMSans-Regular',
     fontSize: Typography.fontSize.sm,
-    color: Colors.mutedSienna,
+    color: Colors.textSecondary,
   },
   footerLink: {
-    color: Colors.primaryRust,
+    color: Colors.accent,
     fontFamily: 'DMSans-Bold',
     textDecorationLine: 'underline',
   },

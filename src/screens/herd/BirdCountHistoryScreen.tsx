@@ -1,3 +1,5 @@
+// MACHINE LEARNING / JETSON NANO - DISABLED
+// App is now for poultry and goats only
 import React, { useMemo, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Modal, Image, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -5,50 +7,54 @@ import { Colors, Spacing, Typography, Radius } from '../../constants';
 import { Ionicons } from '@expo/vector-icons';
 import { PCard } from '../../components/ui';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { HerdStackParamList } from '../../navigation/types';
+import { FlockStackParamList } from '../../navigation/types';
 import { usePoultryStore } from '../../store/poultryStore';
 import { usePoultry } from '../../hooks/usePoultry';
 import { useProfileStore } from '../../store/profileStore';
-import { useJetsonStore } from '../../store/jetsonStore';
+// import { useJetsonStore } from '../../store/jetsonStore';
 import { format, isSameDay, isYesterday } from 'date-fns';
-import { BirdDetection } from '../../types';
+// import { BirdDetection } from '../../types';
 
 const { width: screenWidth } = Dimensions.get('window');
 
-// Hardcoded device address for timeline (Jetson Nano)
-const JETSON_DEVICE_ADDRESS = '989347d6c29e5e8b';
+// // Hardcoded device address for timeline (Jetson Nano)
+// const JETSON_DEVICE_ADDRESS = '989347d6c29e5e8b';
 
 type BirdCountHistoryScreenProps = {
-  navigation: StackNavigationProp<HerdStackParamList, 'BirdCountHistory'>;
+  navigation: StackNavigationProp<FlockStackParamList, 'BirdCountHistory'>;
   route?: { params?: { profileId?: string } };
 };
 
-type TabType = 'history' | 'timeline';
+// TIMELINE TAB DISABLED - DETECTION FEATURES REMOVED
+type TabType = 'history'; // Removed 'timeline'
 
 export const BirdCountHistoryScreen: React.FC<BirdCountHistoryScreenProps> = ({ navigation, route }) => {
   const { history, isLoading, error } = usePoultryStore();
   const { refresh } = usePoultry();
   const { profiles } = useProfileStore();
-  const { birdDetections, fetchBirdDetections } = useJetsonStore();
-  
+  // const { birdDetections, fetchBirdDetections } = useJetsonStore();
+  const birdDetections = new Map();
+  const fetchBirdDetections = async () => {};
+
   const [activeTab, setActiveTab] = useState<TabType>('history');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
 
   // Get the profile (coop) from route params if available
-  const profile = route?.params?.profileId 
+  const profile = route?.params?.profileId
     ? profiles.find(p => p.id === route.params.profileId)
     : null;
-  
-  const assetId = JETSON_DEVICE_ADDRESS; // Use hardcoded address instead of profile.deviceAddress
+
+  // const assetId = JETSON_DEVICE_ADDRESS; // Use hardcoded address instead of profile.deviceAddress
+  const assetId = '';
 
   // Fetch bird detections when timeline tab is active and we have an assetId
-  useEffect(() => {
-    if (activeTab === 'timeline' && assetId) {
-      fetchBirdDetections(assetId, 0);
-      setCurrentPage(0);
-    }
-  }, [activeTab, assetId, fetchBirdDetections]);
+  // useEffect(() => {
+  //   if (activeTab === 'timeline' && assetId) {
+  //     fetchBirdDetections(assetId, 0);
+  //     setCurrentPage(0);
+  //   }
+  // }, [activeTab, assetId, fetchBirdDetections]);
 
   const groupedHistory = useMemo(() => {
     const groups: { [key: string]: typeof history } = {};
@@ -63,23 +69,24 @@ export const BirdCountHistoryScreen: React.FC<BirdCountHistoryScreenProps> = ({ 
     })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [history]);
 
-  // Group bird detections by date
-  const groupedDetections = useMemo(() => {
-    if (!assetId) return [];
-    const detections = birdDetections.get(assetId) || [];
-    
-    const groups: { [key: string]: BirdDetection[] } = {};
-    detections.forEach(item => {
-      const dateKey = new Date(item.detected_at).toDateString();
-      if (!groups[dateKey]) groups[dateKey] = [];
-      groups[dateKey].push(item);
-    });
-    
-    return Object.keys(groups).map(date => ({
-      date,
-      data: groups[date]
-    })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [birdDetections, assetId]);
+  // Group bird detections by date - DISABLED
+  const groupedDetections: any[] = [];
+  // const groupedDetections = useMemo(() => {
+  //   if (!assetId) return [];
+  //   const detections = birdDetections.get(assetId) || [];
+  //
+  //   const groups: { [key: string]: any[] } = {};
+  //   detections.forEach(item => {
+  //     const dateKey = new Date(item.detected_at).toDateString();
+  //     if (!groups[dateKey]) groups[dateKey] = [];
+  //     groups[dateKey].push(item);
+  //   });
+  //
+  //   return Object.keys(groups).map(date => ({
+  //     date,
+  //     data: groups[date]
+  //   })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  // }, [birdDetections, assetId]);
 
   const formatDateLabel = (date: Date) => {
     if (isSameDay(date, new Date())) return 'Today';
@@ -87,13 +94,13 @@ export const BirdCountHistoryScreen: React.FC<BirdCountHistoryScreenProps> = ({ 
     return format(date, 'MMM d, yyyy');
   };
 
-  const handleLoadMore = () => {
-    if (assetId) {
-      const nextPage = currentPage + 1;
-      fetchBirdDetections(assetId, nextPage);
-      setCurrentPage(nextPage);
-    }
-  };
+  // const handleLoadMore = () => {
+  //   if (assetId) {
+  //     const nextPage = currentPage + 1;
+  //     fetchBirdDetections(assetId, nextPage);
+  //     setCurrentPage(nextPage);
+  //   }
+  // };
 
   const renderHistoryItem = ({ item }: { item: { date: string, data: typeof history } }) => (
     <View style={styles.groupContainer}>
@@ -127,59 +134,59 @@ export const BirdCountHistoryScreen: React.FC<BirdCountHistoryScreenProps> = ({ 
     </View>
   );
 
-  const renderTimelineItem = ({ item }: { item: { date: string, data: BirdDetection[] } }) => (
-    <View style={styles.groupContainer}>
-      <View style={styles.dateHeader}>
-        <Text style={styles.dateHeaderText}>
-          {formatDateLabel(new Date(item.date))}
-        </Text>
-      </View>
-      <View style={styles.detectionGrid}>
-        {item.data.map((detection) => (
-          <TouchableOpacity
-            key={detection.id}
-            style={styles.detectionThumbContainer}
-            onPress={() => detection.image_url && setSelectedImage(detection.image_url)}
-          >
-            {detection.image_url ? (
-              <Image
-                source={{ uri: detection.image_url }}
-                style={styles.detectionThumb}
-                resizeMode="cover"
-              />
-            ) : (
-              <View style={styles.detectionThumbPlaceholder}>
-                <Ionicons name="image-outline" size={32} color={Colors.softAsh} />
-              </View>
-            )}
-            <Text style={styles.detectionTime}>
-              {format(new Date(detection.detected_at), 'h:mm a')}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </View>
-  );
+  // const renderTimelineItem = ({ item }: { item: { date: string, data: any[] } }) => (
+  //   <View style={styles.groupContainer}>
+  //     <View style={styles.dateHeader}>
+  //       <Text style={styles.dateHeaderText}>
+  //         {formatDateLabel(new Date(item.date))}
+  //       </Text>
+  //     </View>
+  //     <View style={styles.detectionGrid}>
+  //       {item.data.map((detection) => (
+  //         <TouchableOpacity
+  //           key={detection.id}
+  //           style={styles.detectionThumbContainer}
+  //           onPress={() => detection.image_url && setSelectedImage(detection.image_url)}
+  //         >
+  //           {detection.image_url ? (
+  //             <Image
+  //               source={{ uri: detection.image_url }}
+  //               style={styles.detectionThumb}
+  //               resizeMode="cover"
+  //             />
+  //           ) : (
+  //             <View style={styles.detectionThumbPlaceholder}>
+  //               <Ionicons name="image-outline" size={32} color={Colors.softAsh} />
+  //             </View>
+  //           )}
+  //           <Text style={styles.detectionTime}>
+  //             {format(new Date(detection.detected_at), 'h:mm a')}
+  //           </Text>
+  //         </TouchableOpacity>
+  //       ))}
+  //     </View>
+  //   </View>
+  // );
 
-  const renderTimelineEmptyState = () => {
-    if (!assetId) {
-      return (
-        <View style={styles.emptyState}>
-          <Ionicons name="link-outline" size={48} color={Colors.softAsh} />
-          <Text style={styles.emptyText}>No device linked yet</Text>
-          <Text style={styles.emptySubtext}>Link a device to this coop to view photos</Text>
-        </View>
-      );
-    }
+  // const renderTimelineEmptyState = () => {
+  //   if (!assetId) {
+  //     return (
+  //       <View style={styles.emptyState}>
+  //         <Ionicons name="link-outline" size={48} color={Colors.softAsh} />
+  //         <Text style={styles.emptyText}>No device linked yet</Text>
+  //         <Text style={styles.emptySubtext}>Link a device to this coop to view photos</Text>
+  //       </View>
+  //     );
+  //   }
 
-    return (
-      <View style={styles.emptyState}>
-        <Ionicons name="images-outline" size={48} color={Colors.softAsh} />
-        <Text style={styles.emptyText}>No photos yet</Text>
-        <Text style={styles.emptySubtext}>Once the camera detects birds, photos will show up here</Text>
-      </View>
-    );
-  };
+  //   return (
+  //     <View style={styles.emptyState}>
+  //       <Ionicons name="images-outline" size={48} color={Colors.softAsh} />
+  //       <Text style={styles.emptyText}>No photos yet</Text>
+  //       <Text style={styles.emptySubtext}>Once the camera detects birds, photos will show up here</Text>
+  //     </View>
+  //   );
+  // };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -191,7 +198,7 @@ export const BirdCountHistoryScreen: React.FC<BirdCountHistoryScreenProps> = ({ 
         <View style={{ width: 24 }} />
       </View>
 
-      {/* Tabs */}
+      {/* Tabs - Timeline disabled */}
       <View style={styles.tabsContainer}>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'history' && styles.activeTab]}
@@ -199,12 +206,12 @@ export const BirdCountHistoryScreen: React.FC<BirdCountHistoryScreenProps> = ({ 
         >
           <Text style={[styles.tabText, activeTab === 'history' && styles.activeTabText]}>History</Text>
         </TouchableOpacity>
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={[styles.tab, activeTab === 'timeline' && styles.activeTab]}
           onPress={() => setActiveTab('timeline')}
         >
           <Text style={[styles.tabText, activeTab === 'timeline' && styles.activeTabText]}>Timeline</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       {error && (
@@ -230,15 +237,19 @@ export const BirdCountHistoryScreen: React.FC<BirdCountHistoryScreenProps> = ({ 
           }
         />
       ) : (
-        <FlatList
-          data={groupedDetections}
-          renderItem={renderTimelineItem}
-          keyExtractor={item => item.date}
-          contentContainerStyle={styles.listContent}
-          onEndReached={handleLoadMore}
-          onEndReachedThreshold={0.5}
-          ListEmptyComponent={renderTimelineEmptyState()}
-        />
+        // <FlatList
+        //   data={groupedDetections}
+        //   renderItem={renderTimelineItem}
+        //   keyExtractor={item => item.date}
+        //   contentContainerStyle={styles.listContent}
+        //   onEndReached={handleLoadMore}
+        //   onEndReachedThreshold={0.5}
+        //   ListEmptyComponent={renderTimelineEmptyState()}
+        // />
+        <View style={styles.emptyState}>
+          <Ionicons name="images-outline" size={48} color={Colors.softAsh} />
+          <Text style={styles.emptyText}>Timeline view disabled</Text>
+        </View>
       )}
 
       {/* Full-screen image modal */}

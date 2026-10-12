@@ -1,6 +1,6 @@
 import { BaseEntity, Gender, HealthStatus } from './common';
 
-export type AnimalType = 'cattle' | 'sheep' | 'goat' | 'horse' | 'donkey' | 'bird';
+export type AnimalType = 'goat' | 'bird';
 
 export interface CustomField {
   id: string;

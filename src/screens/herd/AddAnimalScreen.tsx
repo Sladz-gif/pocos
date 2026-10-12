@@ -5,7 +5,7 @@ import { Colors, Spacing, Typography, Radius } from '../../constants';
 import { Ionicons } from '@expo/vector-icons';
 import { PInput, PButton, PChip, ImagePickerField } from '../../components/ui';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { HerdStackParamList } from '../../navigation/types';
+import { FlockStackParamList } from '../../navigation/types';
 import { useLivestockStore } from '../../store/livestockStore';
 import { useAuthStore } from '../../store/authStore';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
@@ -13,7 +13,7 @@ import { format } from 'date-fns';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 type AddAnimalScreenProps = {
-  navigation: StackNavigationProp<HerdStackParamList, 'AddAnimal'>;
+  navigation: StackNavigationProp<FlockStackParamList, 'AddAnimal'>;
 };
 
 export const AddAnimalScreen: React.FC<AddAnimalScreenProps> = ({ navigation }) => {
@@ -50,6 +50,13 @@ export const AddAnimalScreen: React.FC<AddAnimalScreenProps> = ({ navigation }) 
   const handleSave = async () => {
     if (!animalId.trim()) {
       Alert.alert('Error', 'Animal ID is required');
+      return;
+    }
+
+    // Check for duplicate animal ID (goats must have unique IDs)
+    const duplicateId = animals.find(a => a.animalId === animalId.trim());
+    if (duplicateId) {
+      Alert.alert('Error', 'An animal with this ID already exists');
       return;
     }
 

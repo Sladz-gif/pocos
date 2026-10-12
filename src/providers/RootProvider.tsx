@@ -30,7 +30,7 @@ export const RootProvider: React.FC<RootProviderProps> = ({ children }) => {
         if (error) {
           console.error('Supabase Connectivity Check Failed:', error.message);
         } else {
-          console.log('Supabase Connectivity Check: SUCCESS');
+          // console.log('Supabase Connectivity Check: SUCCESS');
         }
       } catch (e) {
         console.error('Supabase Connectivity Check: Network Error', e);

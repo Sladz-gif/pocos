@@ -18,8 +18,8 @@ export const MarketplaceNavigator = () => {
         tabBarActiveTintColor: Colors.primaryRust,
         tabBarInactiveTintColor: Colors.mutedSienna,
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopColor: Colors.softAsh,
+          backgroundColor: Colors.primarySurface,
+          borderTopColor: Colors.border,
           paddingTop: 8,
         },
         tabBarIcon: ({ focused, color, size }) => {

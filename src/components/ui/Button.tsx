@@ -56,12 +56,12 @@ export function PButton({
       case 'secondary':
       case 'danger':
       case 'success':
-        return '#FFFFFF';
+        return Colors.primarySurface;
       case 'ghost':
       case 'outline':
         return Colors.primaryRust;
       default:
-        return '#FFFFFF';
+        return Colors.primarySurface;
     }
   };
 

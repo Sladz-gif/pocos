@@ -422,14 +422,15 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
   signupAsRanchOwner: async (data: { name: string; email: string; password?: string; ranchName: string; ranchLocation: string }) => {
     set({ isLoading: true });
-    
+
     const cleanEmail = data.email.trim().toLowerCase();
     const defaultPassword = data.password || 'TemporaryPassword123!';
-    
+
     try {
       console.log('Starting signup flow for:', cleanEmail);
-      
+
       // 1. Create Supabase Auth User
+      console.log('Step 1: Creating Supabase Auth user...');
       let { data: authData, error: authError } = await supabase.auth.signUp({
         email: cleanEmail,
         password: defaultPassword,
@@ -440,6 +441,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         }
       });
 
+      console.log('Auth response:', { authError, hasUser: !!authData?.user });
+
       // Handle the case where user already exists in Auth but not in our database
       if (authError?.message?.includes('already registered')) {
         console.log('User already exists in Auth. Attempting to sign in and complete profile...');
@@ -447,7 +450,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
           email: cleanEmail,
           password: defaultPassword,
         });
-        
+
         if (signInError) {
           console.error('SignIn error during recovery:', signInError);
           throw new Error('User already exists. Please log in instead.');
@@ -465,12 +468,15 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       console.log('Auth user ready:', authData.user.id);
 
       // Check if user already has a profile in ranch_users
-      const { data: existingUser } = await supabase
+      console.log('Step 2: Checking for existing profile...');
+      const { data: existingUser, error: existingUserError } = await supabase
         .from('ranch_users')
         .select('*')
         .eq('auth_id', authData.user.id)
         .single();
-      
+
+      console.log('Existing user check:', { existingUser, existingUserError });
+
       if (existingUser) {
         console.log('Profile already exists. Logging in...');
         // If profile exists, we just restore the session
@@ -482,9 +488,9 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
       // 2. Generate a unique ranch code
       const ranchCode = generateCode('RANCH');
-      
+
       // 3. Create the ranch
-      console.log('Attempting to create ranch with data:', { name: data.ranchName, location: data.ranchLocation, code: ranchCode });
+      console.log('Step 3: Creating ranch with data:', { name: data.ranchName, location: data.ranchLocation, code: ranchCode });
       const { data: ranchData, error: ranchError } = await supabase
         .from('ranch')
         .insert({
@@ -494,15 +500,18 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         })
         .select()
         .single();
-      
+
+      console.log('Ranch creation response:', { ranchError, hasData: !!ranchData });
+
       if (ranchError || !ranchData) {
         console.error('Ranch creation error:', ranchError);
         throw new Error(ranchError?.message || 'Failed to create ranch record');
       }
 
       console.log('Ranch created successfully:', ranchData.id);
-      
+
       // 4. Create the ranch owner user profile in ranch_users
+      console.log('Step 4: Creating user profile...');
       const { data: userData, error: userError } = await supabase
         .from('ranch_users')
         .insert({
@@ -516,7 +525,9 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         })
         .select()
         .single();
-      
+
+      console.log('User profile creation response:', { userError, hasData: !!userData });
+
       if (userError || !userData) {
         console.error('User profile creation error:', userError);
         // Rollback
@@ -556,8 +567,10 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       };
       
       set({ isAuthenticated: true, user, ranch, userRole: 'super_admin', isLoading: false });
+      console.log('Registration completed successfully!');
     } catch (error: any) {
       console.error('Registration flow failed detail:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
       set({ isLoading: false });
       throw new Error(error.message || 'Failed to register ranch');
     }

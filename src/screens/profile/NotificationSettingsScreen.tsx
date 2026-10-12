@@ -15,7 +15,7 @@ export const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProp
   const [pushEnabled, setPushEnabled] = React.useState(true);
   const [taskReminders, setTaskReminders] = React.useState(true);
   const [newMessages, setNewMessages] = React.useState(true);
-  const [herdAlerts, setHerdAlerts] = React.useState(false);
+  const [flockAlerts, setFlockAlerts] = React.useState(false);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -69,12 +69,12 @@ export const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProp
           </View>
           <View style={[styles.settingRow, { borderBottomWidth: 0 }]}>
             <View style={styles.settingInfo}>
-              <Text style={styles.settingLabel}>Herd Alerts</Text>
+              <Text style={styles.settingLabel}>Flock Alerts</Text>
               <Text style={styles.settingDesc}>Health or breeding updates</Text>
             </View>
-            <Switch 
-              value={herdAlerts} 
-              onValueChange={setHerdAlerts}
+            <Switch
+              value={flockAlerts}
+              onValueChange={setFlockAlerts}
               trackColor={{ false: Colors.softAsh, true: Colors.primaryRust }}
             />
           </View>

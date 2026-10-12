@@ -29,7 +29,10 @@ export const SavedScreen: React.FC<SavedScreenProps> = ({ navigation }) => {
   const savedListings = listings.filter(l => savedListingIds.includes(l.id));
 
   const renderSaved = ({ item }: { item: typeof listings[0] }) => (
-    <PCard style={styles.savedCard} onPress={() => navigation.navigate('BrowseStack', { screen: 'ProductDetail', params: { id: item.id } } as any)}>
+    <PCard style={styles.savedCard} onPress={() => {
+      // @ts-ignore - Nested navigation
+      navigation.navigate('BrowseStack', { screen: 'ProductDetail', params: { id: item.id } });
+    }}>
       <View style={styles.savedImage}>
         <Ionicons name="paw" size={32} color={Colors.primaryRust} />
       </View>
@@ -68,7 +71,7 @@ export const SavedScreen: React.FC<SavedScreenProps> = ({ navigation }) => {
             <Text style={styles.emptyText}>Your wishlist is empty.</Text>
             <PButton 
               title="Explore Marketplace" 
-              onPress={() => navigation.navigate('BrowseStack' as any)} 
+              onPress={() => navigation.navigate('BrowseStack' as never)} 
               style={styles.exploreButton} 
             />
           </View>

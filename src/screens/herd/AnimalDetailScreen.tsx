@@ -6,14 +6,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { PCard, PBadge, PButton, PModal, PInput } from '../../components/ui';
 import { RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { HerdStackParamList } from '../../navigation/types';
+import { FlockStackParamList } from '../../navigation/types';
 import { useLivestockStore } from '../../store/livestockStore';
 import { useAuthStore } from '../../store/authStore';
 import { format } from 'date-fns';
 
 type AnimalDetailScreenProps = {
-  route: RouteProp<HerdStackParamList, 'AnimalDetail'>;
-  navigation: StackNavigationProp<HerdStackParamList, 'AnimalDetail'>;
+  route: RouteProp<FlockStackParamList, 'AnimalDetail'>;
+  navigation: StackNavigationProp<FlockStackParamList, 'AnimalDetail'>;
 };
 
 type SubTab = 'Profiles' | 'Medication' | 'Feeding' | 'Breeding';

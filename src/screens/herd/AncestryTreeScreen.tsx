@@ -4,14 +4,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, Typography, Radius } from '../../constants';
 import { Ionicons } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { HerdStackParamList } from '../../navigation/types';
+import { FlockStackParamList } from '../../navigation/types';
 import { RouteProp } from '@react-navigation/native';
 import { useLivestockStore } from '../../store/livestockStore';
 import { PBadge } from '../../components/ui';
 
 type AncestryTreeScreenProps = {
-  route: RouteProp<HerdStackParamList, 'AncestryTree'>;
-  navigation: StackNavigationProp<HerdStackParamList, 'AncestryTree'>;
+  route: RouteProp<FlockStackParamList, 'AncestryTree'>;
+  navigation: StackNavigationProp<FlockStackParamList, 'AncestryTree'>;
 };
 
 interface AncestorRow {

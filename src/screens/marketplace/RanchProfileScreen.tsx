@@ -8,6 +8,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { BrowseStackParamList } from '../../navigation/types';
 import { RouteProp } from '@react-navigation/native';
 import { useMarketplaceStore } from '../../store/marketplaceStore';
+import { Logo } from '../../components/Logo';
 
 type RanchProfileScreenProps = {
   route: RouteProp<BrowseStackParamList, 'RanchProfile'>;
@@ -33,7 +34,7 @@ export const RanchProfileScreen: React.FC<RanchProfileScreenProps> = ({ route, n
   }
 
   const ranchListings = listings.filter(l => l.ranchId === id && l.status === 'listed');
-  const cattleListings = ranchListings.filter(l => l.category?.toLowerCase() === 'cattle' || l.category?.toLowerCase() === 'livestock');
+  const livestockListings = ranchListings.filter(l => l.category?.toLowerCase() === 'goat' || l.category?.toLowerCase() === 'poultry' || l.category?.toLowerCase() === 'livestock');
 
   const renderContent = () => {
     if (activeSubTab === 'About') {
@@ -86,11 +87,11 @@ export const RanchProfileScreen: React.FC<RanchProfileScreenProps> = ({ route, n
 
     return (
       <View style={styles.content}>
-        {cattleListings.length > 0 && (
+        {livestockListings.length > 0 && (
           <>
-            <Text style={styles.sectionTitle}>Featured Cattle</Text>
+            <Text style={styles.sectionTitle}>Featured Livestock</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalScroll}>
-              {cattleListings.map(listing => (
+              {livestockListings.map(listing => (
                 <PCard key={listing.id} style={styles.featuredCard} onPress={() => navigation.navigate('ProductDetail', { id: listing.id })}>
                   <View style={styles.featuredImage}>
                     {listing.image_url ? (
@@ -156,7 +157,7 @@ export const RanchProfileScreen: React.FC<RanchProfileScreenProps> = ({ route, n
               {currentRanch.logo_url ? (
                 <Image source={{ uri: currentRanch.logo_url }} style={styles.logoImage} />
               ) : (
-                <Ionicons name="business" size={48} color={Colors.primaryRust} />
+                <Logo size="medium" showText={false} />
               )}
             </View>
             <Text style={styles.ranchName}>{currentRanch.name}</Text>

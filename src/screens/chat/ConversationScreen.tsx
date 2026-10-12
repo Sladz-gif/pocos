@@ -166,7 +166,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({ route, n
             <View style={styles.senderInfo}>
               <Text style={styles.senderName}>{displayName}</Text>
               <View style={[styles.roleTag, { backgroundColor: role === 'super_admin' ? Colors.primaryRust : Colors.warmSand }]}>
-                <Text style={[styles.roleTagText, { color: role === 'super_admin' ? '#FFFFFF' : Colors.primaryRust }]}>
+                <Text style={[styles.roleTagText, { color: role === 'super_admin' ? Colors.primarySurface : Colors.primaryRust }]}>
                   {role === 'super_admin' ? 'Admin' : role.replace('_', ' ')}
                 </Text>
               </View>
@@ -233,7 +233,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({ route, n
               disabled={!message.trim()}
               onPress={handleSend}
             >
-              <Ionicons name="send" size={20} color="#FFFFFF" />
+              <Ionicons name="send" size={20} color={Colors.primarySurface} />
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
@@ -249,7 +249,7 @@ export const ConversationScreen: React.FC<ConversationScreenProps> = ({ route, n
               style={styles.closeButton} 
               onPress={() => setSelectedImage(null)}
             >
-              <Ionicons name="close" size={30} color="#FFFFFF" />
+              <Ionicons name="close" size={30} color={Colors.primarySurface} />
             </TouchableOpacity>
             
             <GestureDetector gesture={pinchGesture}>
@@ -278,9 +278,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.lg,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.primarySurface,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.softAsh,
+    borderBottomColor: Colors.border,
   },
   headerInfo: {
     flex: 1,
