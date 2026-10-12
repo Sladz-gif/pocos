@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, TextInput, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -27,7 +27,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { logs, fetchLogs } = useActivityLogStore();
   const { profiles, fetchProfiles } = useProfileStore();
 
-  const [currentDate, setCurrentDate] = useState(new Date());
   const [showTaskInput, setShowTaskInput] = useState(false);
   const [newTask, setNewTask] = useState('');
 
@@ -98,17 +97,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   // Show all onboarded staff members
   const onboardedStaff = staff;
 
-  // Story 2.1: Update date automatically
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const now = new Date();
-      if (now.getDate() !== currentDate.getDate()) {
-        setCurrentDate(now);
-      }
-    }, 60000);
-    return () => clearInterval(timer);
-  }, [currentDate]);
-
   const stats = [
     {
       label: 'On Medication',
@@ -164,19 +152,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       <StatusBar style="dark" />
 
       <View style={[styles.header, { paddingTop: insets.top + Spacing.md }]}>
-        <View style={styles.headerTop}>
-          <View>
-            <Text style={styles.ranchTitle}>{ranch?.name || 'AmanA Poultry Farm'}</Text>
-            <Text style={styles.dateText}>{format(currentDate, 'EEEE, d MMMM yyyy')}</Text>
-          </View>
-        </View>
-
-        <View style={styles.userRow}>
-          <View style={styles.roleBadge}>
-            <Text style={styles.roleText}>{(user?.role || 'Staff').replace('_', ' ').toUpperCase()}</Text>
-          </View>
-          <Text style={styles.welcomeUser}>Hi, {user?.name}</Text>
-        </View>
+        <Text style={styles.headerTitle}>Home</Text>
       </View>
 
       <ScrollView
@@ -360,46 +336,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingBottom: Spacing.xl,
   },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  ranchTitle: {
+  headerTitle: {
     fontFamily: 'PlayfairDisplay-Bold',
-    fontSize: 28,
+    fontSize: 32,
     color: Colors.charcoalInk,
-  },
-  dateText: {
-    fontFamily: 'DMSans-Medium',
-    fontSize: 12,
-    color: Colors.mutedSienna,
-    marginTop: 4,
-    opacity: 0.8,
-    textTransform: 'uppercase',
-  },
-  userRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: Spacing.xl,
-  },
-  roleBadge: {
-    backgroundColor: Colors.primaryAccent,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: Radius.full,
-    marginRight: Spacing.md,
-  },
-  roleText: {
-    fontFamily: 'DMSans-Bold',
-    fontSize: 10,
-    color: '#FFFFFF',
-  },
-  welcomeUser: {
-    fontFamily: 'DMSans-Medium',
-    fontSize: 14,
-    color: Colors.charcoalInk,
-    opacity: 0.9,
   },
   scrollView: {
     flex: 1,

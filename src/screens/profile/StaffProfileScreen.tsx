@@ -60,12 +60,12 @@ export const StaffProfileScreen: React.FC<StaffProfileScreenProps> = ({ navigati
         </View>
 
         <View style={styles.infoSection}>
-          <Text style={styles.sectionTitle}>Farm Information</Text>
+          <Text style={styles.sectionTitle}>Poultry Farm Information</Text>
           <PCard style={styles.infoCard}>
             <View style={styles.infoRow}>
               <Ionicons name="business-outline" size={20} color={Colors.accent} />
               <View style={styles.infoTextContainer}>
-                <Text style={styles.infoLabel}>Farm Name</Text>
+                <Text style={styles.infoLabel}>Poultry Farm Name</Text>
                 <Text style={styles.infoValue}>{ranch?.name || 'Not Assigned'}</Text>
               </View>
             </View>
