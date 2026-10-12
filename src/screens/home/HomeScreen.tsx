@@ -166,7 +166,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       <View style={[styles.header, { paddingTop: insets.top + Spacing.md }]}>
         <View style={styles.headerTop}>
           <View>
-            <Text style={styles.ranchTitle}>{ranch?.name || 'AmanA Farm'}</Text>
+            <Text style={styles.ranchTitle}>{ranch?.name || 'AmanA Poultry Farm'}</Text>
             <Text style={styles.dateText}>{format(currentDate, 'EEEE, d MMMM yyyy')}</Text>
           </View>
         </View>
@@ -280,7 +280,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               </View>
               <Text style={styles.actionText}>Bird Stats</Text>
             </TouchableOpacity>
-            {totalCages === 0 ? (
+            {totalCages === 0 && (
               <TouchableOpacity
                 style={styles.actionButton}
                 onPress={() => navigation.navigate('FlockStack' as never, { screen: 'CreateProfile' })}
@@ -289,22 +289,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                   <Ionicons name="grid-outline" size={24} color={Colors.primaryRust} />
                 </View>
                 <Text style={styles.actionText}>Add First Cage</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={() => {
-                  if (profiles.length > 0) {
-                    navigation.navigate('FlockStack' as never, { screen: 'BirdProfileDetail', params: { id: profiles[0].id } });
-                  } else {
-                    Alert.alert('No Profiles', 'Please create a bird profile first');
-                  }
-                }}
-              >
-                <View style={styles.actionIcon}>
-                  <Ionicons name="grid-outline" size={24} color={Colors.primaryRust} />
-                </View>
-                <Text style={styles.actionText}>Add Cage</Text>
               </TouchableOpacity>
             )}
           </View>

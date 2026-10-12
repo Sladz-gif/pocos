@@ -288,23 +288,6 @@ export const BirdProfileDetailScreen: React.FC<BirdProfileDetailScreenProps> = (
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.quickActions}>
-          <TouchableOpacity 
-            style={styles.quickActionButton}
-            onPress={() => navigation.navigate('BirdCount', { profileId: profile.id })}
-          >
-            <Ionicons name="add-circle-outline" size={32} color={Colors.primaryRust} />
-            <Text style={styles.quickActionText}>Record Count</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.quickActionButton}
-            onPress={() => navigation.navigate('BirdCountHistory', { profileId: profile.id })}
-          >
-            <Ionicons name="analytics-outline" size={32} color={Colors.primaryRust} />
-            <Text style={styles.quickActionText}>View History</Text>
-          </TouchableOpacity>
-        </View>
-
         <View style={styles.profileInfo}>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Type:</Text>
@@ -405,26 +388,13 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: Spacing.xl,
   },
-  quickActions: {
-    flexDirection: 'row',
-    gap: Spacing.md,
-    marginBottom: Spacing.xl,
-  },
-  quickActionButton: {
-    flex: 1,
+  profileInfo: {
     backgroundColor: Colors.primarySurface,
     borderRadius: Radius.lg,
     padding: Spacing.lg,
+    marginBottom: Spacing.xl,
     borderWidth: 1,
     borderColor: Colors.border,
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  quickActionText: {
-    fontFamily: 'DMSans-Medium',
-    fontSize: Typography.fontSize.sm,
-    color: Colors.charcoalInk,
-    textAlign: 'center',
   },
   errorContainer: {
     flex: 1,
@@ -435,14 +405,6 @@ const styles = StyleSheet.create({
     fontFamily: 'DMSans-Regular',
     fontSize: Typography.fontSize.base,
     color: Colors.mutedSienna,
-  },
-  profileInfo: {
-    backgroundColor: Colors.primarySurface,
-    borderRadius: Radius.lg,
-    padding: Spacing.lg,
-    marginBottom: Spacing.xl,
-    borderWidth: 1,
-    borderColor: Colors.border,
   },
   infoRow: {
     flexDirection: 'row',

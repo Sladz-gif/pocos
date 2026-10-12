@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View } from 'react-native';
+import { View, Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { RanchTabParamList } from './types';
 import { HomeStack } from './stacks/HomeStack';
@@ -12,9 +12,16 @@ import { useAuthStore, useChatStore, useTaskStore } from '../store';
 
 const SettingsPlaceholder = ({ navigation }: any) => {
   React.useEffect(() => {
+    // Navigate to admin panel when settings is pressed
     navigation.getParent()?.getParent()?.navigate('AdminModal');
   }, [navigation]);
-  return null;
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text style={{ fontFamily: 'DMSans-Medium', fontSize: 16, color: Colors.textSecondary }}>
+        Loading Settings...
+      </Text>
+    </View>
+  );
 };
 
 const Tab = createBottomTabNavigator<RanchTabParamList>();
