@@ -5,7 +5,6 @@ import { useAuthStore } from '../store/authStore';
 import { AuthNavigator } from './AuthNavigator';
 import { RanchNavigator } from './RanchNavigator';
 import { MarketplaceNavigator } from './MarketplaceNavigator';
-import { AdminNavigator } from './AdminNavigator';
 import { RootStackParamList } from './types';
 
 const RootStack = createStackNavigator<RootStackParamList>();
@@ -21,14 +20,7 @@ export const RootNavigator = () => {
         ) : userRole === 'buyer' ? (
           <RootStack.Screen name="Marketplace" component={MarketplaceNavigator} />
         ) : (
-          <>
-            <RootStack.Screen name="RanchApp" component={RanchNavigator} />
-            <RootStack.Screen 
-              name="AdminModal" 
-              component={AdminNavigator} 
-              options={{ presentation: 'modal' }}
-            />
-          </>
+          <RootStack.Screen name="RanchApp" component={RanchNavigator} />
         )}
       </RootStack.Navigator>
     </NavigationContainer>
