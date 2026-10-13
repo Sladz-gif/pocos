@@ -8,49 +8,17 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { FlockStackParamList } from '../../navigation/types';
 import { useProfileStore } from '../../store/profileStore';
 import { useAuthStore } from '../../store/authStore';
-import { v4 as uuidv4 } from 'uuid';
-import { format } from 'date-fns';
 
 type AddBirdProfileScreenProps = {
   navigation: StackNavigationProp<FlockStackParamList, 'AddBirdProfile'>;
 };
 
-interface Cage {
-  id: string;
-  cageName: string;
-  birdCount: string;
-  feedingType: string;
-  medicationName?: string;
-  wearOffDate?: Date;
-}
-
 export const AddBirdProfileScreen: React.FC<AddBirdProfileScreenProps> = ({ navigation }) => {
   const { addProfile } = useProfileStore();
   const { ranch } = useAuthStore();
-  
+
   const [profileName, setProfileName] = useState('');
-  const [cages, setCages] = useState<Cage[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleAddCage = () => {
-    const newCage: Cage = {
-      id: uuidv4(),
-      cageName: '',
-      birdCount: '',
-      feedingType: '',
-    };
-    setCages([...cages, newCage]);
-  };
-
-  const handleUpdateCage = (id: string, field: keyof Cage, value: string | Date | undefined) => {
-    setCages(cages.map(cage => 
-      cage.id === id ? { ...cage, [field]: value } : cage
-    ));
-  };
-
-  const handleRemoveCage = (id: string) => {
-    setCages(cages.filter(cage => cage.id !== id));
-  };
 
   const handleSave = async () => {
     if (!profileName.trim()) {
@@ -65,7 +33,7 @@ export const AddBirdProfileScreen: React.FC<AddBirdProfileScreenProps> = ({ navi
 
     try {
       setIsSubmitting(true);
-      
+
       // Create the bird profile
       await addProfile({
         name: profileName.trim(),
@@ -81,59 +49,6 @@ export const AddBirdProfileScreen: React.FC<AddBirdProfileScreenProps> = ({ navi
       setIsSubmitting(false);
     }
   };
-
-  const renderCage = (cage: Cage) => (
-    <View key={cage.id} style={styles.cageCard}>
-      <View style={styles.cageHeader}>
-        <Text style={styles.cageTitle}>Cage/Coup {cages.indexOf(cage) + 1}</Text>
-        <TouchableOpacity onPress={() => handleRemoveCage(cage.id)}>
-          <Ionicons name="trash-outline" size={20} color={Colors.primaryRust} />
-        </TouchableOpacity>
-      </View>
-
-      <PInput
-        label="Cage/Cage Name or Number"
-        placeholder="e.g. Cage A-1"
-        value={cage.cageName}
-        onChangeText={(value) => handleUpdateCage(cage.id, 'cageName', value)}
-      />
-
-      <PInput
-        label="Number of Birds"
-        placeholder="e.g. 25"
-        keyboardType="numeric"
-        value={cage.birdCount}
-        onChangeText={(value) => handleUpdateCage(cage.id, 'birdCount', value)}
-      />
-
-      <PInput
-        label="Feeding Type"
-        placeholder="e.g. Layer feed, Scratch"
-        value={cage.feedingType}
-        onChangeText={(value) => handleUpdateCage(cage.id, 'feedingType', value)}
-      />
-
-      <PInput
-        label="Medication Name (Optional)"
-        placeholder="e.g. Antibiotic X"
-        value={cage.medicationName || ''}
-        onChangeText={(value) => handleUpdateCage(cage.id, 'medicationName', value)}
-      />
-
-      {cage.medicationName && (
-        <PInput
-          label="Wear-off Date/Time (Optional)"
-          value={cage.wearOffDate ? format(cage.wearOffDate, 'MMMM d, yyyy h:mm a') : ''}
-          placeholder="Select date and time"
-          onPress={() => {
-            // Would need date picker implementation here
-            Alert.alert('Info', 'Date picker would open here');
-          }}
-          editable={false}
-        />
-      )}
-    </View>
-  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -161,34 +76,12 @@ export const AddBirdProfileScreen: React.FC<AddBirdProfileScreenProps> = ({ navi
               onChangeText={setProfileName}
             />
 
-            <View style={styles.cagesSection}>
-              <View style={styles.cagesHeader}>
-                <Text style={styles.cagesTitle}>Cages/Coups</Text>
-                <TouchableOpacity style={styles.addCageButton} onPress={handleAddCage}>
-                  <Ionicons name="add" size={20} color="#FFFFFF" />
-                  <Text style={styles.addCageText}>Add Cage</Text>
-                </TouchableOpacity>
-              </View>
-
-              {cages.map(renderCage)}
-
-              {cages.length === 0 && (
-                <View style={styles.emptyCages}>
-                  <Ionicons name="grid-outline" size={48} color={Colors.softAsh} />
-                  <Text style={styles.emptyCagesText}>No cages added yet</Text>
-                  <TouchableOpacity style={styles.addFirstCageButton} onPress={handleAddCage}>
-                    <Text style={styles.addFirstCageText}>Add First Cage</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </View>
-
             <PButton
               title={isSubmitting ? "Creating..." : "Create Profile"}
               onPress={handleSave}
               style={styles.submitButton}
               loading={isSubmitting}
-              disabled={!profileName.trim() || cages.length === 0}
+              disabled={!profileName.trim()}
             />
           </View>
         </ScrollView>
@@ -227,79 +120,6 @@ const styles = StyleSheet.create({
   },
   form: {
     padding: Spacing.xl,
-  },
-  cagesSection: {
-    marginTop: Spacing.xl,
-  },
-  cagesHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.lg,
-  },
-  cagesTitle: {
-    fontFamily: 'PlayfairDisplay-Bold',
-    fontSize: Typography.fontSize.lg,
-    color: Colors.charcoalInk,
-  },
-  addCageButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.primaryRust,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.md,
-    gap: Spacing.xs,
-  },
-  addCageText: {
-    fontFamily: 'DMSans-Medium',
-    fontSize: Typography.fontSize.sm,
-    color: '#FFFFFF',
-  },
-  cageCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: Radius.lg,
-    padding: Spacing.lg,
-    marginBottom: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.softAsh,
-  },
-  cageHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.md,
-  },
-  cageTitle: {
-    fontFamily: 'DMSans-Bold',
-    fontSize: Typography.fontSize.base,
-    color: Colors.charcoalInk,
-  },
-  emptyCages: {
-    alignItems: 'center',
-    paddingVertical: Spacing['3xl'],
-    borderWidth: 2,
-    borderColor: Colors.softAsh,
-    borderRadius: Radius.lg,
-    borderStyle: 'dashed',
-  },
-  emptyCagesText: {
-    fontFamily: 'DMSans-Regular',
-    fontSize: Typography.fontSize.base,
-    color: Colors.mutedSienna,
-    marginTop: Spacing.md,
-  },
-  addFirstCageButton: {
-    marginTop: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    backgroundColor: Colors.primaryRust,
-    borderRadius: Radius.md,
-  },
-  addFirstCageText: {
-    fontFamily: 'DMSans-Medium',
-    fontSize: Typography.fontSize.sm,
-    color: '#FFFFFF',
   },
   submitButton: {
     marginTop: Spacing.xl,

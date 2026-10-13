@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform, ActivityIndicator, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -56,12 +56,19 @@ export const RanchOwnerSignUpScreen: React.FC<RanchOwnerSignUpScreenProps> = ({ 
       return;
     }
     if (emailError || passwordError) return;
-    
+
     setFormError('');
     try {
       await signupAsRanchOwner({ name, email, password, ranchName, ranchLocation });
       // Story 1.1: brief success state before navigate
       setShowSuccess(true);
+      // Navigate after a short delay - go back to Welcome screen which will redirect based on auth state
+      setTimeout(() => {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Welcome' }],
+        });
+      }, 2000);
     } catch (e: any) {
       setFormError(e.message || 'Failed to create account');
     }

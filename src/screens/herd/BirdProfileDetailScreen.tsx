@@ -319,7 +319,7 @@ export const BirdProfileDetailScreen: React.FC<BirdProfileDetailScreenProps> = (
             <Text style={styles.cagesTitle}>Cages/Coups</Text>
             <TouchableOpacity style={styles.addButton} onPress={handleAddCage}>
               <Ionicons name="add" size={20} color={Colors.primarySurface} />
-              <Text style={styles.addButtonText}>Add Cage</Text>
+              <Text style={styles.addButtonText}>{cages.length === 0 ? 'Add First Cage' : 'Add Cage'}</Text>
             </TouchableOpacity>
           </View>
 
@@ -327,9 +327,6 @@ export const BirdProfileDetailScreen: React.FC<BirdProfileDetailScreenProps> = (
             <View style={styles.emptyState}>
               <Ionicons name="grid-outline" size={48} color={Colors.softAsh} />
               <Text style={styles.emptyText}>No cages added yet</Text>
-              <TouchableOpacity style={styles.addFirstButton} onPress={handleAddCage}>
-                <Text style={styles.addFirstButtonText}>Add First Cage</Text>
-              </TouchableOpacity>
             </View>
           ) : (
             cages.map(renderCageCard)
@@ -571,18 +568,6 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.base,
     color: Colors.mutedSienna,
     marginTop: Spacing.md,
-  },
-  addFirstButton: {
-    marginTop: Spacing.md,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    backgroundColor: Colors.primaryRust,
-    borderRadius: Radius.md,
-  },
-  addFirstButtonText: {
-    fontFamily: 'DMSans-Medium',
-    fontSize: Typography.fontSize.sm,
-    color: Colors.primarySurface,
   },
   modal: {
     position: 'absolute',

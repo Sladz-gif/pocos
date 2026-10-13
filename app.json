@@ -16,7 +16,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.amana.app",
+      "bundleIdentifier": "com.workddd.amana",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -29,7 +29,7 @@
         "backgroundImage": "./src/assets/android-icon-background.png",
         "monochromeImage": "./src/assets/android-icon-monochrome.png"
       },
-      "package": "com.amana.app",
+      "package": "com.workddd.amana",
       "predictiveBackGestureEnabled": false,
       "newArchEnabled": false,
       "permissions": [
@@ -68,9 +68,9 @@
     "scheme": "amana-app",
     "extra": {
       "eas": {
-        "projectId": "c27100bd-47ea-44ca-aede-edc1845197a8"
+        "projectId": "3586eabb-15ae-4b2b-a670-030172678b99"
       }
     },
-    "owner": "tttttt2222s-team"
+    "owner": "workddd"
   }
 }

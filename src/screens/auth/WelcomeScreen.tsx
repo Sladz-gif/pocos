@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -7,15 +7,34 @@ import { Colors, Spacing, Typography, Radius } from '../../constants';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Logo } from '../../components/Logo';
+import { useAuthStore } from '../../store/authStore';
 
 type WelcomeScreenProps = {
   navigation: StackNavigationProp<AuthStackParamList, 'Welcome'>;
 };
 
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ navigation }) => {
+  const { isAuthenticated, userRole } = useAuthStore();
   const tapCountRef = useRef(0);
   const lastTapAtRef = useRef<number>(0);
   const TAP_WINDOW_MS = 1500;
+
+  // If user is already authenticated, redirect to appropriate screen
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (userRole === 'buyer') {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'RanchLogin' }], // Will be caught by RootNavigator
+        });
+      } else {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'RanchLogin' }], // Will be caught by RootNavigator
+        });
+      }
+    }
+  }, [isAuthenticated, userRole, navigation]);
 
   const handleLogoTap = async () => {
     const now = Date.now();

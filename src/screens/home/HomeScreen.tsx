@@ -43,38 +43,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     }, [ranch?.id, fetchAnimals, fetchMedicationRecords, fetchTasks, fetchLogs, fetchStaff, fetchProfiles])
   );
 
-  // Check if any cages exist
-  const hasCages = profiles.some((profile: any) => {
-    if (profile.customFields) {
-      const cagesField = profile.customFields.find((f: any) => f.key === 'cages');
-      if (cagesField) {
-        try {
-          const cages = JSON.parse(cagesField.value);
-          return cages.length > 0;
-        } catch (e) {
-          return false;
-        }
-      }
-    }
-    return false;
-  });
-
-  // Count total cages across all profiles
-  const totalCages = profiles.reduce((total, profile: any) => {
-    if (profile.customFields) {
-      const cagesField = profile.customFields.find((f: any) => f.key === 'cages');
-      if (cagesField) {
-        try {
-          const cages = JSON.parse(cagesField.value);
-          return total + cages.length;
-        } catch (e) {
-          return total;
-        }
-      }
-    }
-    return total;
-  }, 0);
-
   const handleAddTask = async () => {
     if (newTask.trim() && ranch?.id) {
       try {
@@ -256,17 +224,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               </View>
               <Text style={styles.actionText}>Bird Stats</Text>
             </TouchableOpacity>
-            {totalCages === 0 && (
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={() => navigation.navigate('FlockStack' as never, { screen: 'CreateProfile' })}
-              >
-                <View style={styles.actionIcon}>
-                  <Ionicons name="grid-outline" size={24} color={Colors.primaryRust} />
-                </View>
-                <Text style={styles.actionText}>Add First Cage</Text>
-              </TouchableOpacity>
-            )}
           </View>
         </View>
 

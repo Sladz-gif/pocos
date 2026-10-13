@@ -5,12 +5,12 @@ import { Colors, Spacing, Typography, Radius } from '../../constants';
 import { Ionicons } from '@expo/vector-icons';
 import { PCard, PButton } from '../../components/ui';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { AdminStackParamList } from '../../navigation/types';
+import { SettingsStackParamList, AdminStackParamList } from '../../navigation/types';
 import { useAuthStore } from '../../store/authStore';
 import { Logo } from '../../components/Logo';
 
 type AdminPanelHomeScreenProps = {
-  navigation: StackNavigationProp<AdminStackParamList, 'AdminPanelHome'>;
+  navigation: StackNavigationProp<SettingsStackParamList | AdminStackParamList, 'SettingsHome' | 'AdminPanelHome'>;
 };
 
 export const AdminPanelHomeScreen: React.FC<AdminPanelHomeScreenProps> = ({ navigation }) => {
@@ -36,13 +36,8 @@ export const AdminPanelHomeScreen: React.FC<AdminPanelHomeScreenProps> = ({ navi
   };
 
   const handleClose = () => {
-    // Dismiss the modal
-    const parent = navigation.getParent();
-    if (parent) {
-      parent.goBack();
-    } else {
-      navigation.goBack();
-    }
+    // Dismiss the screen
+    navigation.goBack();
   };
 
   if (!isOwner) {
@@ -79,10 +74,9 @@ export const AdminPanelHomeScreen: React.FC<AdminPanelHomeScreenProps> = ({ navi
             <Ionicons name="chevron-forward" size={20} color={Colors.mutedSienna} />
           </PCard>
 
-          <PButton 
-            title="Logout" 
-            variant="danger" 
-            onPress={handleLogout} 
+          <PButton
+            title="Logout"
+            onPress={handleLogout}
             style={styles.logoutButton}
           />
         </ScrollView>
@@ -213,10 +207,9 @@ export const AdminPanelHomeScreen: React.FC<AdminPanelHomeScreenProps> = ({ navi
           </PCard>
         </View>
 
-        <PButton 
-          title="Logout" 
-          variant="danger" 
-          onPress={handleLogout} 
+        <PButton
+          title="Logout"
+          onPress={handleLogout}
           style={styles.logoutButton}
         />
       </ScrollView>
@@ -313,6 +306,7 @@ const styles = StyleSheet.create({
   logoutButton: {
     marginTop: Spacing.xl,
     marginBottom: Spacing['4xl'],
+    backgroundColor: Colors.accent,
   },
   staffInfoCard: {
     alignItems: 'center',

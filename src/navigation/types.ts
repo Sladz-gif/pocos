@@ -15,7 +15,20 @@ export type RanchTabParamList = {
   FlockStack: NavigatorScreenParams<FlockStackParamList>;
   TasksStack: NavigatorScreenParams<TasksStackParamList>;
   ChatStack: NavigatorScreenParams<ChatStackParamList>;
-  Settings: undefined;
+  Settings: NavigatorScreenParams<SettingsStackParamList>;
+};
+
+export type SettingsStackParamList = {
+  SettingsHome: undefined;
+  ManageTeam: undefined;
+  OnboardStaff: undefined;
+  StaffActivity: undefined;
+  Analytics: undefined;
+  ManageRanchProfile: undefined;
+  ProfileHome: undefined;
+  NotificationSettings: undefined;
+  HelpSupport: undefined;
+  PricingPlans: undefined;
 };
 
 export type HomeStackParamList = {

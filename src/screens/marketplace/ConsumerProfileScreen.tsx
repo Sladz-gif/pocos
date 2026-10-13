@@ -203,14 +203,12 @@ const styles = StyleSheet.create({
     margin: Spacing.xl,
     padding: Spacing.lg,
     borderRadius: Radius.md,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center', 
-    borderWidth: 1,
-    borderColor: Colors.softAsh,
+    backgroundColor: Colors.accent,
+    alignItems: 'center',
   },
   logoutText: {
     fontFamily: 'DMSans-Bold',
-    fontSize: Typography.fontSize.base, 
-    color: Colors.primaryRust,
+    fontSize: Typography.fontSize.base,
+    color: Colors.primarySurface,
   },
 });

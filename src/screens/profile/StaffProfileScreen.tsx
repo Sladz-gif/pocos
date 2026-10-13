@@ -168,7 +168,7 @@ export const StaffProfileScreen: React.FC<StaffProfileScreenProps> = ({ navigati
         </View>
 
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={22} color={Colors.primaryRust} />
+          <Ionicons name="log-out-outline" size={22} color={Colors.primarySurface} />
           <Text style={styles.logoutText}>Logout from App</Text>
         </TouchableOpacity>
         
@@ -315,18 +315,16 @@ const styles = StyleSheet.create({
     margin: Spacing.xl,
     padding: Spacing.lg,
     borderRadius: Radius.md,
-    backgroundColor: Colors.primarySurface,
+    backgroundColor: Colors.accent,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
     gap: Spacing.sm,
   },
   logoutText: {
     fontFamily: 'DMSans-Bold',
     fontSize: Typography.fontSize.base,
-    color: Colors.accent,
+    color: Colors.primarySurface,
   },
   footerText: {
     textAlign: 'center',
