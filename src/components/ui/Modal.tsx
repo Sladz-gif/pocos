@@ -9,6 +9,7 @@ import {
   Platform,
   Text,
   ScrollView,
+  Keyboard,
 } from 'react-native';
 import { Colors, Spacing, Radius, Typography } from '../../constants';
 import { Ionicons } from '@expo/vector-icons';
@@ -32,12 +33,16 @@ export function PModal({ visible, onClose, children, title }: ModalProps) {
         <Pressable style={styles.closeArea} onPress={onClose} />
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
           style={styles.keyboardAvoiding}
         >
           <TouchableOpacity
             style={styles.content}
             activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
+            onPress={(e) => {
+              e.stopPropagation();
+              Keyboard.dismiss();
+            }}
           >
             <View style={styles.header}>
               <Text style={styles.title}>{title || ''}</Text>
@@ -45,7 +50,12 @@ export function PModal({ visible, onClose, children, title }: ModalProps) {
                 <Ionicons name="close" size={24} color={Colors.charcoalInk} />
               </TouchableOpacity>
             </View>
-            <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            <ScrollView
+              style={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={styles.scrollContentContainer}
+            >
               {children}
             </ScrollView>
           </TouchableOpacity>
@@ -72,7 +82,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: Radius.xl,
     borderTopRightRadius: Radius.xl,
     padding: Spacing.xl,
-    maxHeight: '80%',
+    maxHeight: '90%',
     width: '100%',
   },
   header: {
@@ -88,5 +98,8 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flex: 1,
+  },
+  scrollContentContainer: {
+    paddingBottom: Spacing.lg,
   },
 });

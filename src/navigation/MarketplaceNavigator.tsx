@@ -15,8 +15,8 @@ export const MarketplaceNavigator = () => {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: Colors.primaryRust,
-        tabBarInactiveTintColor: Colors.mutedSienna,
+        tabBarActiveTintColor: Colors.accentRed,
+        tabBarInactiveTintColor: Colors.textSecondary,
         tabBarStyle: {
           backgroundColor: Colors.primarySurface,
           borderTopColor: Colors.border,

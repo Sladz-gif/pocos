@@ -1,12 +1,12 @@
 // MACHINE LEARNING / JETSON NANO - DISABLED
 // App is now for poultry and goats only
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Colors, Spacing, Typography, Radius } from '../../constants';
 import { Ionicons } from '@expo/vector-icons';
-import { PCard, PButton, PInput, PDeleteModal } from '../../components/ui';
+import { PCard, PButton, PInput, PDeleteModal, PModal } from '../../components/ui';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { FlockStackParamList } from '../../navigation/types';
 import { useProfileStore } from '../../store/profileStore';
@@ -200,69 +200,70 @@ export const BirdProfileDetailScreen: React.FC<BirdProfileDetailScreenProps> = (
   );
 
   const renderAddCageModal = () => (
-    <View style={styles.modal}>
-      <View style={styles.modalContent}>
-        <Text style={styles.modalTitle}>
-          {editingCage && cages.find(c => c.id === editingCage.id) ? 'Edit Cage' : 'Add New Cage'}
-        </Text>
+    <PModal
+      visible={showAddCage}
+      onClose={() => {
+        setShowAddCage(false);
+        setEditingCage(null);
+      }}
+      title={editingCage && cages.find(c => c.id === editingCage.id) ? 'Edit Cage' : 'Add New Cage'}
+    >
+      <PInput
+        label="Cage/Cage Name or Number"
+        placeholder="e.g. Cage A-1"
+        value={editingCage?.cageName || ''}
+        onChangeText={(value) => setEditingCage(prev => prev ? { ...prev, cageName: value } : null)}
+      />
 
+      <PInput
+        label="Number of Birds"
+        placeholder="e.g. 25"
+        keyboardType="numeric"
+        value={editingCage?.birdCount || ''}
+        onChangeText={(value) => setEditingCage(prev => prev ? { ...prev, birdCount: value } : null)}
+      />
+
+      <PInput
+        label="Feeding Type"
+        placeholder="e.g. Layer feed, Scratch"
+        value={editingCage?.feedingType || ''}
+        onChangeText={(value) => setEditingCage(prev => prev ? { ...prev, feedingType: value } : null)}
+      />
+
+      <PInput
+        label="Medication Name (Optional)"
+        placeholder="e.g. Antibiotic X"
+        value={editingCage?.medicationName || ''}
+        onChangeText={(value) => setEditingCage(prev => prev ? { ...prev, medicationName: value } : null)}
+      />
+
+      {editingCage?.medicationName && (
         <PInput
-          label="Cage/Cage Name or Number"
-          placeholder="e.g. Cage A-1"
-          value={editingCage?.cageName || ''}
-          onChangeText={(value) => setEditingCage(prev => prev ? { ...prev, cageName: value } : null)}
+          label="Wear-off Date/Time (Optional)"
+          value={editingCage.wearOffDate ? format(editingCage.wearOffDate, 'MMMM d, yyyy h:mm a') : ''}
+          placeholder="Select date and time"
+          onPress={() => setDatePickerVisibility(true)}
+          editable={false}
         />
+      )}
 
-        <PInput
-          label="Number of Birds"
-          placeholder="e.g. 25"
-          keyboardType="numeric"
-          value={editingCage?.birdCount || ''}
-          onChangeText={(value) => setEditingCage(prev => prev ? { ...prev, birdCount: value } : null)}
+      <View style={styles.modalActions}>
+        <PButton
+          title="Cancel"
+          onPress={() => {
+            setShowAddCage(false);
+            setEditingCage(null);
+          }}
+          style={styles.cancelButton}
+          variant="ghost"
         />
-
-        <PInput
-          label="Feeding Type"
-          placeholder="e.g. Layer feed, Scratch"
-          value={editingCage?.feedingType || ''}
-          onChangeText={(value) => setEditingCage(prev => prev ? { ...prev, feedingType: value } : null)}
+        <PButton
+          title="Save"
+          onPress={handleSaveCage}
+          style={styles.saveButton}
         />
-
-        <PInput
-          label="Medication Name (Optional)"
-          placeholder="e.g. Antibiotic X"
-          value={editingCage?.medicationName || ''}
-          onChangeText={(value) => setEditingCage(prev => prev ? { ...prev, medicationName: value } : null)}
-        />
-
-        {editingCage?.medicationName && (
-          <PInput
-            label="Wear-off Date/Time (Optional)"
-            value={editingCage.wearOffDate ? format(editingCage.wearOffDate, 'MMMM d, yyyy h:mm a') : ''}
-            placeholder="Select date and time"
-            onPress={() => setDatePickerVisibility(true)}
-            editable={false}
-          />
-        )}
-
-        <View style={styles.modalActions}>
-          <PButton
-            title="Cancel"
-            onPress={() => {
-              setShowAddCage(false);
-              setEditingCage(null);
-            }}
-            style={styles.cancelButton}
-            variant="ghost"
-          />
-          <PButton
-            title="Save"
-            onPress={handleSaveCage}
-            style={styles.saveButton}
-          />
-        </View>
       </View>
-    </View>
+    </PModal>
   );
 
   if (!profile) {
@@ -334,7 +335,7 @@ export const BirdProfileDetailScreen: React.FC<BirdProfileDetailScreenProps> = (
         </View>
       </ScrollView>
 
-      {showAddCage && renderAddCageModal()}
+      {renderAddCageModal()}
 
       <PDeleteModal
         visible={showDeleteModal}
@@ -568,30 +569,6 @@ const styles = StyleSheet.create({
     fontSize: Typography.fontSize.base,
     color: Colors.mutedSienna,
     marginTop: Spacing.md,
-  },
-  modal: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: Spacing.xl,
-  },
-  modalContent: {
-    backgroundColor: Colors.primarySurface,
-    borderRadius: Radius.lg,
-    padding: Spacing.xl,
-    width: '100%',
-    maxHeight: '80%',
-  },
-  modalTitle: {
-    fontFamily: 'PlayfairDisplay-Bold',
-    fontSize: Typography.fontSize.xl,
-    color: Colors.charcoalInk,
-    marginBottom: Spacing.lg,
   },
   modalActions: {
     flexDirection: 'row',

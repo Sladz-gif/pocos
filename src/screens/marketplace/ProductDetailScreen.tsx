@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, Platform, Dimensions, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, Platform, Dimensions, Modal, KeyboardAvoidingView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors, Spacing, Typography, Radius } from '../../constants';
 import { Ionicons } from '@expo/vector-icons';
@@ -72,66 +72,73 @@ export const ProductDetailScreen: React.FC<ProductDetailScreenProps> = ({ route,
       onRequestClose={() => setShowOrderSheet(false)}
     >
       <View style={styles.modalOverlay}>
-        <TouchableOpacity 
-          style={styles.modalCloseArea} 
-          activeOpacity={1} 
-          onPress={() => setShowOrderSheet(false)} 
+        <TouchableOpacity
+          style={styles.modalCloseArea}
+          activeOpacity={1}
+          onPress={() => setShowOrderSheet(false)}
         />
-        <View style={styles.bottomSheet}>
-          <View style={styles.sheetHeader}>
-            <View style={styles.sheetHandle} />
-            <Text style={styles.sheetTitle}>Order Options</Text>
-          </View>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+          style={styles.keyboardAvoiding}
+        >
+          <View style={styles.bottomSheet}>
+            <View style={styles.sheetHeader}>
+              <View style={styles.sheetHandle} />
+              <Text style={styles.sheetTitle}>Order Options</Text>
+            </View>
 
-          <View style={styles.sheetBody}>
-            <View style={styles.orderItemPreview}>
-              <View style={styles.previewImageContainer}>
-                {product.imageUrl ? (
-                  <Image source={{ uri: product.imageUrl }} style={styles.previewImage} />
-                ) : (
-                  <Ionicons name="paw" size={24} color={Colors.softAsh} />
-                )}
+            <ScrollView style={styles.sheetBody} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.sheetBodyContent}>
+              <View style={styles.orderItemPreview}>
+                <View style={styles.previewImageContainer}>
+                  {product.imageUrl ? (
+                    <Image source={{ uri: product.imageUrl }} style={styles.previewImage} />
+                  ) : (
+                    <Ionicons name="paw" size={24} color={Colors.softAsh} />
+                  )}
+                </View>
+                <View style={styles.previewInfo}>
+                  <Text style={styles.previewName}>{product.productName}</Text>
+                  <Text style={styles.previewPrice}>{formatPrice(product.price, product.ranch?.currency)} / {product.unit}</Text>
+                </View>
               </View>
-              <View style={styles.previewInfo}>
-                <Text style={styles.previewName}>{product.productName}</Text>
-                <Text style={styles.previewPrice}>{formatPrice(product.price, product.ranch?.currency)} / {product.unit}</Text>
+
+              <View style={styles.quantitySelector}>
+                <Text style={styles.selectorLabel}>Quantity</Text>
+                <View style={styles.selectorControls}>
+                  <TouchableOpacity
+                    style={styles.qtyBtn}
+                    onPress={() => setQuantity(Math.max(1, quantity - 1))}
+                  >
+                    <Ionicons name="remove" size={20} color={Colors.charcoalInk} />
+                  </TouchableOpacity>
+                  <Text style={styles.qtyValue}>{quantity}</Text>
+                  <TouchableOpacity
+                    style={styles.qtyBtn}
+                    onPress={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                  >
+                    <Ionicons name="add" size={20} color={Colors.charcoalInk} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={styles.totalBreakdown}>
+              <View style={styles.breakdownRow}>
+                <Text style={styles.breakdownLabel}>Subtotal</Text>
+                <Text style={styles.breakdownValue}>{formatPrice(product.price * quantity, product.ranch?.currency)}</Text>
               </View>
             </View>
 
-            <View style={styles.quantitySelector}>
-              <Text style={styles.selectorLabel}>Quantity</Text>
-              <View style={styles.selectorControls}>
-                <TouchableOpacity 
-                  style={styles.qtyBtn} 
-                  onPress={() => setQuantity(Math.max(1, quantity - 1))}
-                >
-                  <Ionicons name="remove" size={20} color={Colors.charcoalInk} />
-                </TouchableOpacity>
-                <Text style={styles.qtyValue}>{quantity}</Text>
-                <TouchableOpacity 
-                  style={styles.qtyBtn} 
-                  onPress={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                >
-                  <Ionicons name="add" size={20} color={Colors.charcoalInk} />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View style={styles.totalBreakdown}>
-            <View style={styles.breakdownRow}>
-              <Text style={styles.breakdownLabel}>Subtotal</Text>
-              <Text style={styles.breakdownValue}>{formatPrice(product.price * quantity, product.ranch?.currency)}</Text>
-            </View>
+              <PButton
+                title="Add to Cart"
+                onPress={handleAddToCart}
+                loading={isOrdering}
+                style={styles.confirmBtn}
+              />
+              <View style={{ height: 20 }} />
+            </ScrollView>
           </View>
-
-            <PButton 
-              title="Add to Cart" 
-              onPress={handleAddToCart} 
-              loading={isOrdering}
-              style={styles.confirmBtn}
-            />
-          </View>
-        </View>
+        </KeyboardAvoidingView>
       </View>
     </Modal>
   );
@@ -507,12 +514,14 @@ const styles = StyleSheet.create({
   modalCloseArea: {
     flex: 1,
   },
+  keyboardAvoiding: {
+    width: '100%',
+  },
   bottomSheet: {
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: Radius['3xl'],
     borderTopRightRadius: Radius['3xl'],
-    paddingBottom: Platform.OS === 'ios' ? 40 : 24,
-    maxHeight: height * 0.8,
+    maxHeight: height * 0.9,
   },
   sheetHeader: {
     alignItems: 'center',
@@ -533,6 +542,9 @@ const styles = StyleSheet.create({
     color: Colors.charcoalInk,
   },
   sheetBody: {
+    padding: 0,
+  },
+  sheetBodyContent: {
     padding: Spacing.xl,
   },
   orderItemPreview: {

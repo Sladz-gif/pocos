@@ -264,13 +264,19 @@ export const BirdCountHistoryScreen: React.FC<BirdCountHistoryScreenProps> = ({ 
           activeOpacity={1}
           onPress={() => setSelectedImage(null)}
         >
-          {selectedImage && (
-            <Image
-              source={{ uri: selectedImage }}
-              style={styles.fullScreenImage}
-              resizeMode="contain"
-            />
-          )}
+          <ScrollView
+            style={styles.imageScrollView}
+            contentContainerStyle={styles.imageScrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {selectedImage && (
+              <Image
+                source={{ uri: selectedImage }}
+                style={styles.fullScreenImage}
+                resizeMode="contain"
+              />
+            )}
+          </ScrollView>
           <TouchableOpacity
             style={styles.closeImageButton}
             onPress={() => setSelectedImage(null)}
@@ -462,12 +468,18 @@ const styles = StyleSheet.create({
   imageModalContainer: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.95)',
+  },
+  imageScrollView: {
+    flex: 1,
+  },
+  imageScrollContent: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
   fullScreenImage: {
     width: '100%',
-    height: '80%',
+    height: screenWidth,
   },
   closeImageButton: {
     position: 'absolute',

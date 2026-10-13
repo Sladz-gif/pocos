@@ -53,7 +53,7 @@ export const RanchNavigator = () => {
           <Tab.Navigator
             screenOptions={({ route }) => ({
               headerShown: false,
-              tabBarActiveTintColor: Colors.accent,
+              tabBarActiveTintColor: Colors.accentRed,
               tabBarInactiveTintColor: Colors.textSecondary,
               tabBarStyle: {
                 backgroundColor: Colors.primarySurface,
@@ -99,7 +99,7 @@ export const RanchNavigator = () => {
                 title: 'Tasks',
                 tabBarBadge: unreadTasksCount > 0 ? unreadTasksCount : undefined,
                 tabBarBadgeStyle: {
-                  backgroundColor: Colors.accent,
+                  backgroundColor: Colors.accentRed,
                   color: Colors.primarySurface,
                 }
               }}
@@ -122,11 +122,11 @@ export const RanchNavigator = () => {
                     width: 56,
                     height: 56,
                     borderRadius: 28,
-                    backgroundColor: Colors.accent,
+                    backgroundColor: Colors.accentRed,
                     justifyContent: 'center',
                     alignItems: 'center',
                     marginTop: -20,
-                    shadowColor: Colors.accent,
+                    shadowColor: Colors.accentRed,
                     shadowOffset: { width: 0, height: 4 },
                     shadowOpacity: 0.3,
                     shadowRadius: 8,
@@ -153,7 +153,7 @@ export const RanchNavigator = () => {
                 title: 'Chat',
                 tabBarBadge: totalUnreadCount > 0 ? totalUnreadCount : undefined,
                 tabBarBadgeStyle: {
-                  backgroundColor: Colors.accent,
+                  backgroundColor: Colors.accentRed,
                   color: Colors.primarySurface,
                 }
               }}

@@ -1,6 +1,7 @@
 export const Colors = {
   // Primary Palette - White & Green with Custom Accents
   primaryGreen: "#204D38", // Primary green accent
+  accentRed: "#D32F2F", // Vibrant red accent for design elements
   deepBlack: "#111111", // Dark background/text
   white: "#FFFFFF", // White surface
   lightBeige: "#F5E6D0", // Light beige background
@@ -25,6 +26,7 @@ export const Colors = {
   textSecondary: "#666666", // gray
   border: "#E0E0E0", // light gray
   accent: "#204D38", // primaryGreen
+  accentRed: "#D32F2F", // Vibrant red for tabs and design accents
 
   // Legacy aliases for backward compatibility
   primaryRust: "#204D38", // Maps to green
